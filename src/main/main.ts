@@ -35,6 +35,12 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
+ipcMain.on('get-devices', async (event, arg) => {
+  const devices = await getAllDeviceInfo()
+  console.log('devices: ', devices);
+  event.reply('receive-devices', devices);
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -93,10 +99,8 @@ const showTrayIcon = () => {
 async function getDevices() {
   try {
     const { stdout } = await exec("upower -e");
-    console.log(stdout);  // Log the full battery information
 
-    const result = stdout.split('\n')
-    console.log(result)
+    const result = stdout.split('\n').filter(x => x.trim())
     return result
     // Parse the output for the battery percentage
   } catch (error) {
@@ -118,12 +122,21 @@ async function getDeviceInfo(devicePath) {
       }
     });
 
-    console.log(deviceInfo)
     return deviceInfo;
   } catch (error) {
     console.error(`Error getting device info: ${error}`);
     throw error;  // Rethrow the error if you want the caller to handle it
   }
+}
+
+async function getAllDeviceInfo () {
+  const devices = await getDevices();
+  const result = []
+  for (let device of devices) {
+    const obj = await getDeviceInfo(device)
+    result.push(obj)
+  }
+  return result
 }
 
 const createWindow = async () => {
@@ -154,11 +167,6 @@ const createWindow = async () => {
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   showTrayIcon()
-  const devices = await getDevices();
-  for (let device of devices) {
-    await getDeviceInfo(device)
-  }
-
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
