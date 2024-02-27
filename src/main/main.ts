@@ -129,6 +129,22 @@ async function getDeviceInfo(devicePath) {
   }
 }
 
+function extractNumberFromString(str) {
+  const match = str.match(/\d+/); // This regex matches one or more digits
+  if (match) {
+    return parseInt(match[0], 10); // Convert the matched string to an integer
+  } else {
+    return null; // Return null if no number is found
+  }
+}
+
+function transformDeviceInfo (deviceInfo) {
+  if (deviceInfo.percentage) {
+    deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage)
+  }
+  return deviceInfo
+}
+
 async function getAllDeviceInfo () {
   const devices = await getDevices();
   const result = []
@@ -136,7 +152,7 @@ async function getAllDeviceInfo () {
     const obj = await getDeviceInfo(device)
     result.push(obj)
   }
-  return result
+  return result.filter(x => x.model).map(transformDeviceInfo)
 }
 
 const createWindow = async () => {
