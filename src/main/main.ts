@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, Tray, Menu, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -56,6 +56,36 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+const showTrayIcon = () => {
+  let tray = new Tray(path.join(__dirname, '../../assets/icon.png')); // Path to your tray icon
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Show App', click: function() {
+        mainWindow.show();
+      }
+    },
+    { label: 'Options', submenu: [
+        { label: 'Option 1', click: function() {
+            console.log('Option 1 clicked');
+          }
+        },
+        { label: 'Option 2', click: function() {
+            console.log('Option 2 clicked');
+          }
+        }
+      ]
+    },
+    { label: 'Quit', click: function() {
+        app.isQuiting = true;
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setContextMenu(contextMenu);
+  tray.setToolTip('Your App Name');
+}
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -82,6 +112,8 @@ const createWindow = async () => {
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+
+  showTrayIcon()
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
