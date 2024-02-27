@@ -46,10 +46,10 @@ ipcMain.on('get-devices', async (event, arg) => {
 
 function runBatteryNotification (devices) {
   for (let device of devices) {
-    if (device.percentage < 101) { // TODO
+    if (device.percentage < 20) {
       showLowBatteryNotification(device.model, device.percentage)
     }
-    if (device.percentage > 80) { // TODO
+    if (device.percentage > 80) {
       showHighBatteryNotification(device.model, device.percentage)
     }
   }
