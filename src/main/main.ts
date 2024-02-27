@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, Tray, Menu, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, Tray, Menu, shell, ipcMain, Notification } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -37,9 +37,23 @@ ipcMain.on('ipc-example', async (event, arg) => {
 
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo()
+
+  runBatteryNotification(devices)
+
   console.log('devices: ', devices);
   event.reply('receive-devices', devices);
 });
+
+function runBatteryNotification (devices) {
+  for (let device of devices) {
+    if (device.percentage < 101) { // TODO
+      showLowBatteryNotification(device.model, device.percentage)
+    }
+    if (device.percentage > 80) { // TODO
+      showHighBatteryNotification(device.model, device.percentage)
+    }
+  }
+}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -153,6 +167,28 @@ async function getAllDeviceInfo () {
     result.push(obj)
   }
   return result.filter(x => x.model).map(transformDeviceInfo)
+}
+
+function showLowBatteryNotification(device, percent) {
+  showNotification({
+    title: `Low battery`,
+    body: `${device} battery is at ${percent}%`
+  })
+}
+
+function showHighBatteryNotification(device, percent) {
+  showNotification({
+    title: `Stop charging`,
+    body: `${device} battery is at ${percent}%`
+  })
+}
+
+function showNotification(options) {
+  const notification = new Notification({
+    sound: '../../assets/message.mp3',
+    ...options,
+  });
+  notification.show();
 }
 
 const createWindow = async () => {
