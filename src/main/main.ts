@@ -14,6 +14,10 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { exec as execCallback } from 'child_process'
+const { promisify } = require('util');
+
+const exec = promisify(execCallback)
 
 class AppUpdater {
   constructor() {
@@ -86,6 +90,42 @@ const showTrayIcon = () => {
   tray.setToolTip('Your App Name');
 }
 
+async function getDevices() {
+  try {
+    const { stdout } = await exec("upower -e");
+    console.log(stdout);  // Log the full battery information
+
+    const result = stdout.split('\n')
+    console.log(result)
+    return result
+    // Parse the output for the battery percentage
+  } catch (error) {
+    console.error(`Error getting battery info: ${error}`);
+    throw error;  // Rethrow the error if you want the caller to handle it
+  }
+}
+
+async function getDeviceInfo(devicePath) {
+  try {
+    const { stdout } = await exec(`upower -i ${devicePath}`);
+    const infoLines = stdout.toString().split('\n').filter(line => line.trim() !== '');
+    const deviceInfo = {};
+
+    infoLines.forEach((line) => {
+      const [key, ...value] = line.split(':');
+      if (key && value.length > 0) {
+        deviceInfo[key.trim()] = value.join('').trim();
+      }
+    });
+
+    console.log(deviceInfo)
+    return deviceInfo;
+  } catch (error) {
+    console.error(`Error getting device info: ${error}`);
+    throw error;  // Rethrow the error if you want the caller to handle it
+  }
+}
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -114,6 +154,11 @@ const createWindow = async () => {
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   showTrayIcon()
+  const devices = await getDevices();
+  for (let device of devices) {
+    await getDeviceInfo(device)
+  }
+
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
