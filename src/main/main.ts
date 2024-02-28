@@ -9,15 +9,23 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, Tray, Menu, shell, ipcMain, Notification } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from 'electron';
+import {autoUpdater} from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
-import { exec as execCallback } from 'child_process'
-const { promisify } = require('util');
+import {resolveHtmlPath} from './util';
+import {getAllDeviceInfo, showHighBatteryNotification, showLowBatteryNotification} from "./battery";
 
-const exec = promisify(execCallback)
+const BATTERY_CHECK_INTERVAL = 60 * 10 * 1000
+
+/* TODO
+
+Exponential backoff
+Warning preferences
+UI
+
+ */
+
 
 class AppUpdater {
   constructor() {
@@ -37,12 +45,13 @@ ipcMain.on('ipc-example', async (event, arg) => {
 
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo()
-
-  runBatteryNotification(devices)
-
-  console.log('devices: ', devices);
   event.reply('receive-devices', devices);
 });
+
+setInterval(async function () {
+  const devices = await getAllDeviceInfo()
+  runBatteryNotification(devices)
+}, BATTERY_CHECK_INTERVAL)
 
 function runBatteryNotification (devices) {
   for (let device of devices) {
@@ -80,26 +89,31 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
-const showTrayIcon = () => {
-  let tray = new Tray(path.join(__dirname, '../../assets/icon.png')); // Path to your tray icon
+export const showTrayIcon = () => {
+  let tray = new Tray(path.join(__dirname, '../../assets/battery.png')); // Path to your tray icon
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Show App', click: function() {
+    {
+      label: 'Show App', click: function () {
         mainWindow.show();
       }
     },
-    { label: 'Options', submenu: [
-        { label: 'Option 1', click: function() {
+    {
+      label: 'Options', submenu: [
+        {
+          label: 'Option 1', click: function () {
             console.log('Option 1 clicked');
           }
         },
-        { label: 'Option 2', click: function() {
+        {
+          label: 'Option 2', click: function () {
             console.log('Option 2 clicked');
           }
         }
       ]
     },
-    { label: 'Quit', click: function() {
+    {
+      label: 'Quit', click: function () {
         app.isQuiting = true;
         app.quit();
       }
@@ -109,88 +123,6 @@ const showTrayIcon = () => {
   tray.setContextMenu(contextMenu);
   tray.setToolTip('Your App Name');
 }
-
-async function getDevices() {
-  try {
-    const { stdout } = await exec("upower -e");
-
-    const result = stdout.split('\n').filter(x => x.trim())
-    return result
-    // Parse the output for the battery percentage
-  } catch (error) {
-    console.error(`Error getting battery info: ${error}`);
-    throw error;  // Rethrow the error if you want the caller to handle it
-  }
-}
-
-async function getDeviceInfo(devicePath) {
-  try {
-    const { stdout } = await exec(`upower -i ${devicePath}`);
-    const infoLines = stdout.toString().split('\n').filter(line => line.trim() !== '');
-    const deviceInfo = {};
-
-    infoLines.forEach((line) => {
-      const [key, ...value] = line.split(':');
-      if (key && value.length > 0) {
-        deviceInfo[key.trim()] = value.join('').trim();
-      }
-    });
-
-    return deviceInfo;
-  } catch (error) {
-    console.error(`Error getting device info: ${error}`);
-    throw error;  // Rethrow the error if you want the caller to handle it
-  }
-}
-
-function extractNumberFromString(str) {
-  const match = str.match(/\d+/); // This regex matches one or more digits
-  if (match) {
-    return parseInt(match[0], 10); // Convert the matched string to an integer
-  } else {
-    return null; // Return null if no number is found
-  }
-}
-
-function transformDeviceInfo (deviceInfo) {
-  if (deviceInfo.percentage) {
-    deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage)
-  }
-  return deviceInfo
-}
-
-async function getAllDeviceInfo () {
-  const devices = await getDevices();
-  const result = []
-  for (let device of devices) {
-    const obj = await getDeviceInfo(device)
-    result.push(obj)
-  }
-  return result.filter(x => x.model).map(transformDeviceInfo)
-}
-
-function showLowBatteryNotification(device, percent) {
-  showNotification({
-    title: `Low battery`,
-    body: `${device} battery is at ${percent}%`
-  })
-}
-
-function showHighBatteryNotification(device, percent) {
-  showNotification({
-    title: `Stop charging`,
-    body: `${device} battery is at ${percent}%`
-  })
-}
-
-function showNotification(options) {
-  const notification = new Notification({
-    sound: '../../assets/message.mp3',
-    ...options,
-  });
-  notification.show();
-}
-
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -208,13 +140,14 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('battery.png'),
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
   });
+
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
