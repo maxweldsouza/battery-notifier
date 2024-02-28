@@ -90,7 +90,7 @@ const installExtensions = async () => {
 };
 
 export const showTrayIcon = () => {
-  let tray = new Tray(path.join(__dirname, '../../assets/battery.png')); // Path to your tray icon
+  let tray = new Tray(getAssetPath('battery.png')); // Path to your tray icon
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -123,18 +123,19 @@ export const showTrayIcon = () => {
   tray.setContextMenu(contextMenu);
   tray.setToolTip('Your App Name');
 }
+
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../assets');
+
+const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
+};
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
   }
-
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
-
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
 
   mainWindow = new BrowserWindow({
     show: false,
