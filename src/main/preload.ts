@@ -5,6 +5,15 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 export type Channels = 'ipc-example' | 'get-devices' | 'receive-devices';
 
 const electronHandler = {
+  store: {
+    get(key) {
+      return ipcRenderer.sendSync('electron-store-get', key);
+    },
+    set(property, val) {
+      ipcRenderer.send('electron-store-set', property, val);
+    },
+    // Other method you want to add like has(), reset(), etc.
+  },
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);

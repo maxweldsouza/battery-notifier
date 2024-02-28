@@ -3,6 +3,7 @@ const ipcRenderer  = window.electron.ipcRenderer
 
 function Battery(props) {
   const [data, setData] = useState([]);
+  const [state, setState] = useState({})
 
   useEffect(() => {
     ipcRenderer.sendMessage('get-devices');
@@ -16,11 +17,39 @@ function Battery(props) {
     };
 
   }, []);
+  console.log('state: ', state);
+  const saveState = (id, key, value) => {
+    setState(state => {
+      return {
+        ...state,
+        [id]: {
+          ...state[id],
+          [key]: value
+        }
+      }
+    })
+  }
   return (
     <div>{data.map(row => {
-      return <div key={row['native-path']}>
-        {row.model}
+      console.log('row: ', row);
+      return <div className={'row'} key={row['native-path']}>
+        <div className='name'>
+          {row.model}
+        </div>
+        <div className='percentage'>
         {row.percentage}%
+        </div>
+        Low: <input type={'checkbox'} checked={state[row['native-path']]?.checked}
+                    onChange={e => {
+                      saveState(row['native-path'], 'low', e.target.checked)
+                    }}
+      />
+        High: <input type={'checkbox'} checked={state[row.path]?.checked}
+                    onChange={e => {
+                       saveState(row['native-path'], 'high', e.target.checked)
+                    }}
+      />
+
       </div>
     })}</div>
   );
