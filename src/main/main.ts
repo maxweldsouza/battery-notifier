@@ -190,6 +190,15 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 
+  mainWindow.on('close', (event) => {
+    if (!app.isQuiting) {
+      event.preventDefault();
+      mainWindow.hide(); // Hide the window instead of closing it
+      console.log('Hide ', );
+    }
+    return false;
+  });
+
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
