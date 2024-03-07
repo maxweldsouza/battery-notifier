@@ -19,7 +19,8 @@ import Store from 'electron-store';
 
 const store = new Store();
 
-const BATTERY_CHECK_INTERVAL = 60 * 10 * 1000
+const MIN_IN_MILISECONDS = 60 * 1000
+const BATTERY_CHECK_INTERVAL = 10 * MIN_IN_MILISECONDS
 
 /* TODO
 
@@ -60,20 +61,23 @@ ipcMain.on('electron-store-set', async (event, key, val) => {
 });
 
 
-setInterval(async function () {
+const task = async function () {
   const devices = await getAllDeviceInfo()
   const preferences = store.get('battery')
   runBatteryNotification(devices, preferences)
-}, BATTERY_CHECK_INTERVAL)
+}
+
+task().then()
+setInterval(task, BATTERY_CHECK_INTERVAL)
 
 function runBatteryNotification (devices, preferences) {
   if (devices.length <= 0) return
 
   for (let device of devices) {
-    if (device.percentage <= 20 && preferences[device['native-path'].low !== false]) {
+    if (device.percentage <= 40 && preferences[device['native-path']].low !== false) {
       showLowBatteryNotification(device.model, device.percentage)
     }
-    if (device.percentage >= 80 && preferences[device['native-path'].high !== false]) {
+    if (device.percentage >= 80 && preferences[device['native-path']].high !== false) {
       showHighBatteryNotification(device.model, device.percentage)
     }
   }

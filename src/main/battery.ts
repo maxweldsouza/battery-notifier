@@ -65,6 +65,8 @@ export async function getAllDeviceInfo() {
 }
 
 export function showLowBatteryNotification(device, percent) {
+
+  console.log('Low battery ', );
   showNotification({
     title: `Low battery`,
     body: `${device} battery is at ${percent}%`
