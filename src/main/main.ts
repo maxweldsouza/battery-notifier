@@ -119,23 +119,9 @@ export const showTrayIcon = () => {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show App', click: function () {
+      label: 'Settings', click: function () {
         mainWindow.show();
       }
-    },
-    {
-      label: 'Options', submenu: [
-        {
-          label: 'Option 1', click: function () {
-            console.log('Option 1 clicked');
-          }
-        },
-        {
-          label: 'Option 2', click: function () {
-            console.log('Option 2 clicked');
-          }
-        }
-      ]
     },
     {
       label: 'Quit', click: function () {
