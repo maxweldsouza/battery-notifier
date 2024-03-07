@@ -15,6 +15,9 @@ const electronHandler = {
     // Other method you want to add like has(), reset(), etc.
   },
   ipcRenderer: {
+    removeAllListeners(channel: Channels) {
+      ipcRenderer.removeAllListeners(channel)
+    },
     sendMessage(channel: Channels, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
     },

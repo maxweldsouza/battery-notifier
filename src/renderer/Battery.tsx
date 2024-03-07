@@ -1,13 +1,18 @@
 import React, {useEffect, useState} from 'react';
 const ipcRenderer  = window.electron.ipcRenderer
+import { useInterval, useMountedState } from 'react-use';
+
+const MIN_IN_MILLISECONDS = 60 * 1000
+const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS
 
 function Battery(props) {
   const [data, setData] = useState([]);
   const [preferences, setPreferences] = useState({})
 
+  const isMounted = useMountedState();
+
   useEffect(() => {
     const preferences = window.electron.store.get('battery')
-    console.log(preferences)
     setPreferences(preferences)
   }, [])
 
@@ -16,18 +21,22 @@ function Battery(props) {
   }, [preferences])
 
   useEffect(() => {
-    ipcRenderer.sendMessage('get-devices');
     ipcRenderer.on('receive-devices', (event: [], arg) => {
       setData(event);
-      console.log(event, arg)
+      console.log(event, new Date())
     });
+    ipcRenderer.sendMessage('get-devices');
     // Clean the listener after the component is dismounted
     return () => {
-      // ipcRenderer.removeAllListeners('get-devices');
+      ipcRenderer.removeAllListeners('receive-devices');
     };
 
   }, []);
-  console.log('preferences: ', preferences);
+
+  useInterval(() => {
+    ipcRenderer.sendMessage('get-devices')
+  }, isMounted ? REFRESH_INTERVAL : null)
+
   const saveState = (id, key, value) => {
     setPreferences(state => {
       return {
@@ -42,7 +51,6 @@ function Battery(props) {
   return (
     <div>{data.map(row => {
       const id = row['native-path']
-      console.log('row, preferences: ', row, preferences);
       return <div className={'row'} key={id}>
         <div className='name'>
           {row.model}
