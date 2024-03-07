@@ -39,6 +39,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let tray;
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -66,13 +67,24 @@ setInterval(async function () {
 }, BATTERY_CHECK_INTERVAL)
 
 function runBatteryNotification (devices, preferences) {
+  if (devices.length <= 0) return
+
   for (let device of devices) {
-    if (device.percentage < 20 && preferences[device['native-path'].low !== false]) {
+    if (device.percentage <= 20 && preferences[device['native-path'].low !== false]) {
       showLowBatteryNotification(device.model, device.percentage)
     }
-    if (device.percentage > 80 && preferences[device['native-path'].high !== false]) {
+    if (device.percentage >= 80 && preferences[device['native-path'].high !== false]) {
       showHighBatteryNotification(device.model, device.percentage)
     }
+  }
+
+  const minBattery = Math.min(devices.map(x => x.percentage))
+  if (minBattery <= 20) {
+    tray.setIcon(batteryLowIcon)
+  } else if (minBattery <= 80) {
+    tray.setIcon(batteryHalfIcon)
+  } else if (minBattery <= 100) {
+    tray.setIcon(batteryFullIcon)
   }
 }
 
@@ -102,7 +114,8 @@ const installExtensions = async () => {
 };
 
 export const showTrayIcon = () => {
-  let tray = new Tray(getAssetPath('battery.png')); // Path to your tray icon
+
+  tray = new Tray(batteryFullIcon); // Path to your tray icon
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -143,6 +156,11 @@ const RESOURCES_PATH = app.isPackaged
 const getAssetPath = (...paths: string[]): string => {
   return path.join(RESOURCES_PATH, ...paths);
 };
+
+const batteryFullIcon = getAssetPath('battery-full.png')
+const batteryHalfIcon = getAssetPath('battery-half.png')
+const batteryLowIcon = getAssetPath('battery-low.png')
+
 
 const createWindow = async () => {
   if (isDebug) {
