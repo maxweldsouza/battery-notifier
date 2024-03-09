@@ -58,6 +58,9 @@ function Battery(props) {
         <div className='percentage'>
         {row.percentage}%
         </div>
+        <div className={'device-state'}>
+          {row.state}
+        </div>
         Low: <input type={'checkbox'} checked={preferences[id]?.low}
                     onChange={e => {
                       saveState(id, 'low', e.target.checked)

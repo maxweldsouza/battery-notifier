@@ -58,6 +58,10 @@ a:hover {
 
 .row {
   display: grid;
-  grid-template-columns: 1fr repeat(5, 30px) ;
+  grid-template-columns: 1fr 80px 120px repeat(4, 30px) ;
   gap: 1em;
+}
+
+.device-state {
+  text-transform: capitalize;
 }
