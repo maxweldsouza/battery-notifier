@@ -24,6 +24,7 @@ const BATTERY_CHECK_INTERVAL = 10 * MIN_IN_MILISECONDS
 
 /* TODO
 
+Show warning based on charging state
 Exponential backoff
 Warning preferences
 UI

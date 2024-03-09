@@ -59,6 +59,14 @@ function Battery(props) {
         {row.percentage}%
         </div>
         <div className={'device-state'}>
+          {/*0: Unknown*/}
+          {/*1: Charging*/}
+          {/*2: Discharging*/}
+          {/*3: Empty*/}
+          {/*4: Fully charged*/}
+          {/*5: Pending charge*/}
+          {/*6: Pending discharge*/}
+
           {row.state}
         </div>
         Low: <input type={'checkbox'} checked={preferences[id]?.low}
