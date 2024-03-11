@@ -75,10 +75,12 @@ function runBatteryNotification (devices, preferences) {
   if (devices.length <= 0) return
 
   for (let device of devices) {
-    if (device.percentage <= 20 && preferences[device['native-path']].low !== false) {
+    if (device.percentage <= 20 && preferences[device['native-path']].low !== false
+    && device.status === 'discharging') {
       showLowBatteryNotification(device.model, device.percentage)
     }
-    if (device.percentage >= 80 && preferences[device['native-path']].high !== false) {
+    if (device.percentage >= 80 && preferences[device['native-path']].high !== false
+    && device.status === 'charging') {
       showHighBatteryNotification(device.model, device.percentage)
     }
   }

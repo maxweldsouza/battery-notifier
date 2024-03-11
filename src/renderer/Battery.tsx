@@ -49,6 +49,7 @@ function Battery(props) {
     })
   }
   return (
+    <div className={''}>
     <div>{data.map(row => {
       const id = row['native-path']
       return <div className={'row'} key={id}>
@@ -82,6 +83,10 @@ function Battery(props) {
 
       </div>
     })}</div>
+      <button onClick={() => {
+        ipcRenderer.sendMessage('get-devices')
+      }}>Refresh</button>
+    </div>
   );
 }
 
