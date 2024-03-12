@@ -49,8 +49,17 @@ function Battery(props) {
     })
   }
   return (
-    <div className={''}>
-    <div>{data.map(row => {
+    <div className={'container'}>
+    <div className={'table-container'}>
+      <div className={'row header'}>
+        <div>Device</div>
+        <div>Percentage</div>
+        <div>Status</div>
+        <div>Low notification</div>
+        <div>High notification</div>
+
+      </div>
+      {data.map(row => {
       const id = row['native-path']
       return <div className={'row'} key={id}>
         <div className='name'>
@@ -70,20 +79,25 @@ function Battery(props) {
 
           {row.state}
         </div>
-        Low: <input type={'checkbox'} checked={preferences[id]?.low}
-                    onChange={e => {
-                      saveState(id, 'low', e.target.checked)
-                    }}
-      />
-        High: <input type={'checkbox'} checked={preferences[id]?.high}
-                    onChange={e => {
-                       saveState(id, 'high', e.target.checked)
-                    }}
-      />
+        <div>
 
+        <input type={'checkbox'} checked={preferences[id]?.low}
+                           onChange={e => {
+                             saveState(id, 'low', e.target.checked)
+                           }}
+        />
+        </div>
+        <div>
+          <input type={'checkbox'} checked={preferences[id]?.high}
+                       onChange={e => {
+                         saveState(id, 'high', e.target.checked)
+                       }}
+        />
+        </div>
       </div>
-    })}</div>
-      <button onClick={() => {
+    })}
+    </div>
+      <button className={'refresh-button'} onClick={() => {
         ipcRenderer.sendMessage('get-devices')
       }}>Refresh</button>
     </div>
