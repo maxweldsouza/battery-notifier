@@ -71,6 +71,22 @@ const task = async function () {
 task().then()
 setInterval(task, BATTERY_CHECK_INTERVAL)
 
+function setIcon (tray, icon) {
+  tray.setIcon(icon)
+  tray.setImage(icon)
+}
+
+function getBatteryIcon (devices) {
+  const minBattery = Math.min(...devices.map(x => x.percentage))
+  if (minBattery <= 20) {
+    return batteryLowIcon
+  } else if (minBattery <= 80) {
+    return batteryHalfIcon
+  } else if (minBattery <= 100) {
+    return batteryFullIcon
+  }
+}
+
 function runBatteryNotification (devices, preferences) {
   if (devices.length <= 0) return
 
@@ -85,14 +101,7 @@ function runBatteryNotification (devices, preferences) {
     }
   }
 
-  const minBattery = Math.min(devices.map(x => x.percentage))
-  if (minBattery <= 20) {
-    tray.setIcon(batteryLowIcon)
-  } else if (minBattery <= 80) {
-    tray.setIcon(batteryHalfIcon)
-  } else if (minBattery <= 100) {
-    tray.setIcon(batteryFullIcon)
-  }
+  setIcon(tray, getBatteryIcon(devices))
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -120,9 +129,10 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
-export const showTrayIcon = () => {
-
-  tray = new Tray(batteryFullIcon); // Path to your tray icon
+export async function showTrayIcon () {
+  const devices = await getAllDeviceInfo()
+  const icon = getBatteryIcon(devices)
+  tray = new Tray(icon); // Path to your tray icon
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -139,7 +149,7 @@ export const showTrayIcon = () => {
   ]);
 
   tray.setContextMenu(contextMenu);
-  tray.setToolTip('Your App Name');
+  tray.setToolTip('Battery Notifier');
 }
 
 const RESOURCES_PATH = app.isPackaged
