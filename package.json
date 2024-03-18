@@ -219,9 +219,32 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "snap"
       ],
-      "category": "Development"
+      "category": "Utility",
+      "desktop": {
+        "Name": "Battery Notifier",
+        "Comment": "Notifies you when a device battery is too low or too high.",
+        "Icon": "icon"
+      }
+    },
+    "snap": {
+      "base": "core20",
+      "confinement": "strict",
+      "stagePackages": [
+        "libasound2",
+        "libnotify4",
+        "libnspr4",
+        "libnss3",
+        "libpcre3",
+        "libpulse0",
+        "libxss1",
+        "libxtst6"
+      ],
+      "environment": {
+        "TMPDIR": "$XDG_RUNTIME_DIR"
+      }
     },
     "directories": {
       "app": "release/app",

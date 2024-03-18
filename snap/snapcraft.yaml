@@ -1,6 +1,6 @@
 name: battery-notifier
 base: core20
-version: '0.0.1'
+version: '0.1.0'
 summary: Notifies you when a device battery is too low or too high.
 description: |
   You know what? This app is amazing! It does all the things
@@ -10,12 +10,10 @@ grade: stable
 confinement: classic
 
 parts:
-  slack:
+  app:
     plugin: dump
-    source: out/make/deb/x64/battery-notifier_0.1_amd64.deb
-    source-type: deb
-    after:
-      - desktop-gtk3
+    source: release/build/linux-unpacked
+    source-type: local
     stage-packages:
       - libasound2
       - libnotify4
@@ -25,16 +23,11 @@ parts:
       - libpulse0
       - libxss1
       - libxtst6
-  electron-launch:
-    plugin: dump
-    source: files/
-#    prepare: |
-#      chmod +x bin/electron-launch
 
 apps:
-  myApp:
-    command: bin/electron-launch $SNAP/usr/lib/battery-notifier/battery-notifier
-    desktop: usr/share/applications/battery-notifier.desktop
+  batteryNotifier:
+    command: battery-notifier
+    desktop: battery-notifier.desktop
     # Correct the TMPDIR path for Chromium Framework/Electron to ensure
     # libappindicator has readable resources.
     environment:
