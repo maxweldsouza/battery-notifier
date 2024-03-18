@@ -23,7 +23,6 @@ function Battery(props) {
   useEffect(() => {
     ipcRenderer.on('receive-devices', (event: [], arg) => {
       setData(event);
-      console.log(event, new Date())
     });
     ipcRenderer.sendMessage('get-devices');
     // Clean the listener after the component is dismounted
@@ -81,14 +80,14 @@ function Battery(props) {
         </div>
         <div>
 
-        <input type={'checkbox'} checked={preferences[id]?.low}
+        <input type={'checkbox'} checked={preferences[id]?.low !== false}
                            onChange={e => {
                              saveState(id, 'low', e.target.checked)
                            }}
         />
         </div>
         <div>
-          <input type={'checkbox'} checked={preferences[id]?.high}
+          <input type={'checkbox'} checked={preferences[id]?.high !== false}
                        onChange={e => {
                          saveState(id, 'high', e.target.checked)
                        }}

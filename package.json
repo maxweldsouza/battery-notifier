@@ -174,8 +174,8 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Battery Notifier",
+    "appId": "org.erb.BatteryNotifier",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -233,12 +233,9 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "maxweldsouza",
+      "repo": "battery-notifier"
     }
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "devEngines": {
     "node": ">=14.x",
