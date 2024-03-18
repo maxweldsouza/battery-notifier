@@ -1,7 +1,7 @@
 name: battery-notifier
 base: core20
 version: '0.0.1'
-summary: A little description for the app.
+summary: Notifies you when a device battery is too low or too high.
 description: |
   You know what? This app is amazing! It does all the things
   for you. Some say it keeps you young, maybe even happy.
