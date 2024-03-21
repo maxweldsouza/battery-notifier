@@ -230,8 +230,9 @@
       }
     },
     "snap": {
-      "base": "core20",
+      "base": "core22",
       "confinement": "strict",
+      "plugs": ["upower-observe"],
       "stagePackages": [
         "libasound2",
         "libnotify4",
