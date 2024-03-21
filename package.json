@@ -219,18 +219,22 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "snap"
+        "AppImage"
       ],
       "category": "Utility",
       "desktop": {
         "Name": "Battery Notifier",
         "Comment": "Notifies you when a device battery is too low or too high.",
-        "Icon": "icon"
+        "Icon": "assets/icon.png"
+      }
+    },
+    "appImage": {
+      "desktop": {
+        "Terminal": "false"
       }
     },
     "snap": {
-      "base": "core22",
+      "base": "core20",
       "confinement": "strict",
       "plugs": ["upower-observe"],
       "stagePackages": [
