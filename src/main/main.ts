@@ -70,7 +70,6 @@ task().then()
 setInterval(task, BATTERY_CHECK_INTERVAL)
 
 function setIcon (tray, icon) {
-  tray.setIcon(icon)
   tray.setImage(icon)
 }
 
@@ -145,6 +144,8 @@ export async function showTrayIcon () {
       }
     }
   ]);
+
+  setIcon(tray, batteryHalfIcon)
 
   tray.setContextMenu(contextMenu);
   tray.setToolTip('Battery Notifier');
