@@ -1,24 +1,32 @@
-import React, {useEffect, useState} from 'react';
-const ipcRenderer  = window.electron.ipcRenderer
-import { useInterval, useMountedState } from 'react-use';
+import React, { useEffect, useState } from 'react';
 
-const MIN_IN_MILLISECONDS = 60 * 1000
-const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS
+const ipcRenderer = window.electron.ipcRenderer;
+import { useInterval, useMountedState } from 'react-use';
+import NormalContainer from '../shared/NormalContainer';
+import Button from '../shared/Button';
+import Table from '../shared/Table';
+import Tr from '../shared/Tr';
+import Th from '../shared/Th';
+import Thead from '../shared/Thead';
+import Tbody from '../shared/Tbody';
+
+const MIN_IN_MILLISECONDS = 60 * 1000;
+const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 
 function Battery(props) {
   const [data, setData] = useState([]);
-  const [preferences, setPreferences] = useState({})
+  const [preferences, setPreferences] = useState({});
 
   const isMounted = useMountedState();
 
   useEffect(() => {
-    const preferences = window.electron.store.get('battery')
-    setPreferences(preferences)
-  }, [])
+    const preferences = window.electron.store.get('battery');
+    setPreferences(preferences);
+  }, []);
 
   useEffect(() => {
-    window.electron.store.set('battery', preferences)
-  }, [preferences])
+    window.electron.store.set('battery', preferences);
+  }, [preferences]);
 
   useEffect(() => {
     ipcRenderer.on('receive-devices', (event: [], arg) => {
@@ -33,8 +41,8 @@ function Battery(props) {
   }, []);
 
   useInterval(() => {
-    ipcRenderer.sendMessage('get-devices')
-  }, isMounted ? REFRESH_INTERVAL : null)
+    ipcRenderer.sendMessage('get-devices');
+  }, isMounted ? REFRESH_INTERVAL : null);
 
   const saveState = (id, key, value) => {
     setPreferences(state => {
@@ -44,62 +52,66 @@ function Battery(props) {
           ...state[id],
           [key]: value
         }
-      }
-    })
-  }
+      };
+    });
+  };
   return (
-    <div className={'container'}>
-    <div className={'table-container'}>
-      <div className={'row header'}>
-        <div>Device</div>
-        <div>Percentage</div>
-        <div>Status</div>
-        <div>Low notification</div>
-        <div>High notification</div>
+    <NormalContainer>
+      <Table>
+        <Thead>
+          <Tr>
+          <Th>Device</Th>
+          <Th>Percentage</Th>
+          <Th>Status</Th>
+          <Th>Low notification</Th>
+          <Th>High notification</Th>
+          </Tr>
 
-      </div>
-      {data.map(row => {
-      const id = row['native-path']
-      return <div className={'row'} key={id}>
-        <div className='name'>
-          {row.model}
-        </div>
-        <div className='percentage'>
-        {row.percentage}%
-        </div>
-        <div className={'device-state'}>
-          {/*0: Unknown*/}
-          {/*1: Charging*/}
-          {/*2: Discharging*/}
-          {/*3: Empty*/}
-          {/*4: Fully charged*/}
-          {/*5: Pending charge*/}
-          {/*6: Pending discharge*/}
+        </Thead>
+        <Tbody>
+        {data.map(row => {
+          const id = row['native-path'];
+          return <Tr key={id}>
+            <Th>
+              {row.model}
+            </Th>
+            <Th>
+              {row.percentage}%
+            </Th>
+            <Th>
+              {/*0: Unknown*/}
+              {/*1: Charging*/}
+              {/*2: Discharging*/}
+              {/*3: Empty*/}
+              {/*4: Fully charged*/}
+              {/*5: Pending charge*/}
+              {/*6: Pending discharge*/}
 
-          {row.state}
-        </div>
-        <div>
+              {row.state}
+            </Th>
+            <Th>
 
-        <input type={'checkbox'} checked={preferences[id]?.low !== false}
-                           onChange={e => {
-                             saveState(id, 'low', e.target.checked)
-                           }}
-        />
-        </div>
-        <div>
-          <input type={'checkbox'} checked={preferences[id]?.high !== false}
-                       onChange={e => {
-                         saveState(id, 'high', e.target.checked)
-                       }}
-        />
-        </div>
-      </div>
-    })}
-    </div>
-      <button className={'refresh-button'} onClick={() => {
-        ipcRenderer.sendMessage('get-devices')
-      }}>Refresh</button>
-    </div>
+              <input type={'checkbox'} checked={preferences[id]?.low !== false}
+                     onChange={e => {
+                       saveState(id, 'low', e.target.checked);
+                     }}
+              />
+            </Th>
+            <Th>
+              <input type={'checkbox'} checked={preferences[id]?.high !== false}
+                     onChange={e => {
+                       saveState(id, 'high', e.target.checked);
+                     }}
+              />
+            </Th>
+          </Tr>;
+        })}
+        </Tbody>
+      </Table>
+      <Button onClick={() => {
+        ipcRenderer.sendMessage('get-devices');
+      }}>Refresh</Button>
+    </NormalContainer>
   );
 }
 
