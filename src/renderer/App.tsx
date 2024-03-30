@@ -1,6 +1,5 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
-import './App.css';
+import '../shared/globals.css';
 import Battery from "./Battery";
 
 export default function App() {
