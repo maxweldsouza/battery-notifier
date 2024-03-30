@@ -24,12 +24,10 @@ function Battery(props) {
 
   useEffect(() => {
     const preferences = window.electron.store.get('battery');
-    setPreferences(preferences);
+    if (preferences) {
+      setPreferences(preferences);
+    }
   }, []);
-
-  useEffect(() => {
-    window.electron.store.set('battery', preferences);
-  }, [preferences]);
 
   useEffect(() => {
     ipcRenderer.on('receive-devices', (event: [], arg) => {
@@ -49,13 +47,15 @@ function Battery(props) {
 
   const saveState = (id, key, value) => {
     setPreferences(state => {
-      return {
+      const newPreferences = {
         ...state,
         [id]: {
           ...state[id],
           [key]: value
         }
-      };
+      }
+      window.electron.store.set('battery', newPreferences);
+      return newPreferences;
     });
   };
   return (

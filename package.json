@@ -220,7 +220,7 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "snap"
       ],
       "category": "Utility",
       "desktop": {
@@ -235,24 +235,11 @@
       }
     },
     "snap": {
-      "base": "core20",
-      "confinement": "strict",
+      "base": "core22",
+      "confinement": "classic",
       "plugs": [
         "upower-observe"
-      ],
-      "stagePackages": [
-        "libasound2",
-        "libnotify4",
-        "libnspr4",
-        "libnss3",
-        "libpcre3",
-        "libpulse0",
-        "libxss1",
-        "libxtst6"
-      ],
-      "environment": {
-        "TMPDIR": "$XDG_RUNTIME_DIR"
-      }
+      ]
     },
     "directories": {
       "app": "release/app",

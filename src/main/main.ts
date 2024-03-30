@@ -41,12 +41,6 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let tray;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo()
   event.reply('receive-devices', devices);
@@ -56,13 +50,16 @@ ipcMain.on('electron-store-get', async (event, val) => {
   event.returnValue = store.get(val);
 });
 ipcMain.on('electron-store-set', async (event, key, val) => {
-  store.set(key, val);
+  console.log(val)
+  if (val) {
+    store.set(key, val);
+  }
 });
 
 
 const task = async function () {
   const devices = await getAllDeviceInfo()
-  const preferences = store.get('battery')
+  const preferences = store.get('battery') || {}
   runBatteryNotification(devices, preferences)
 }
 
@@ -70,7 +67,7 @@ task().then()
 setInterval(task, BATTERY_CHECK_INTERVAL)
 
 function setIcon (tray, icon) {
-  tray.setImage(icon)
+  tray?.setImage(icon)
 }
 
 function getBatteryIcon (devices) {
@@ -88,11 +85,11 @@ function runBatteryNotification (devices, preferences) {
   if (devices.length <= 0) return
 
   for (let device of devices) {
-    if (device.percentage <= 20 && preferences[device['native-path']].low !== false
+    if (device.percentage <= 20 && preferences[device['native-path']]?.low !== false
     && device.status === 'discharging') {
       showLowBatteryNotification(device.model, device.percentage)
     }
-    if (device.percentage >= 80 && preferences[device['native-path']].high !== false
+    if (device.percentage >= 80 && preferences[device['native-path']]?.high !== false
     && device.status === 'charging') {
       showHighBatteryNotification(device.model, device.percentage)
     }
