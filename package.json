@@ -220,7 +220,7 @@
     },
     "linux": {
       "target": [
-        "snap"
+        "deb"
       ],
       "category": "Utility",
       "desktop": {
@@ -238,7 +238,16 @@
       "base": "core22",
       "confinement": "classic",
       "plugs": [
-        "upower-observe"
+        "upower-observe",
+        "home",
+        "desktop",
+        "gsettings",
+        "x11",
+        "wayland",
+        "opengl",
+        "browser-support",
+        "network",
+        "network-bind"
       ]
     },
     "directories": {

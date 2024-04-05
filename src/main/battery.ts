@@ -1,20 +1,44 @@
 import {Notification} from "electron";
 import {exec as execCallback} from 'child_process'
+import dbus from 'dbus-next'
 
 const { promisify } = require('util');
 
 const exec = promisify(execCallback)
 
+async function dbusTest () {
+  console.log('dbusTest ', );
+ const bus = dbus.systemBus();
+ console.log('bus: ', bus);
+  const upower = await bus.getProxyObject('org.freedesktop.UPower', '/org/freedesktop/UPower');
+  console.log('upower: ', upower);
+  const upowerIface = upower.getInterface('org.freedesktop.UPower');
+  console.log('upowerIface: ', upowerIface);
+
+  upowerIface.on('DeviceAdded', (path) => {
+    console.log(`Device added: ${path}`);
+  });
+
+  upowerIface.on('DeviceRemoved', (path) => {
+    console.log(`Device removed: ${path}`);
+  });
+}
+
 async function getDevices() {
   try {
-    const {stdout} = await exec("upower -e");
+    let {stdout} = await exec("upower -e");
 
     const result = stdout.split('\n').filter(x => x.trim())
     return result
     // Parse the output for the battery percentage
   } catch (error) {
     console.error(`Error getting battery info: ${error}`);
-    throw error;  // Rethrow the error if you want the caller to handle it
+    // throw error;  // Rethrow the error if you want the caller to handle it
+    let out;
+    out = await exec('echo $PATH')
+    console.log('out.stdout: ', out.stdout);
+    out = await exec('which upower')
+    console.log('out.stdout: ', out.stdout);
   }
 }
 
