@@ -237,7 +237,19 @@
     },
     "snap": {
       "base": "core22",
-      "confinement": "strict"
+      "confinement": "strict",
+      "plugs": [
+        "upower-observe",
+        "home",
+        "desktop",
+        "gsettings",
+        "x11",
+        "wayland",
+        "opengl",
+        "browser-support",
+        "network",
+        "network-bind"
+      ]
     },
     "directories": {
       "app": "release/app",

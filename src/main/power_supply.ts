@@ -42,17 +42,27 @@ function transformDeviceInfo (deviceInfo) {
 }
 
 export async function getAllDeviceInfo() {
-  const devices = fs.readdirSync(directoryPath);
-  let results = await Promise.all(devices.map(readDevice));
-  results = results.map(transformDeviceInfo)
-  return results
+  try {
+    const devices = fs.readdirSync(directoryPath);
+    let results = await Promise.all(devices.map(readDevice));
+    results = results.map(transformDeviceInfo)
+    return results
+  } catch (e) {
+    console.log('e: ', e);
+
+  }
 }
 
 async function readProp(dirPath, file) {
-  const filePath = path.join(dirPath, file);
-  const value = await fsPromise.readFile(filePath);
-  const strValue = value.toString().trim();
-  return strValue;
+  try {
+    const filePath = path.join(dirPath, file);
+    const value = await fsPromise.readFile(filePath);
+    const strValue = value.toString().trim();
+    return strValue;
+  } catch (e) {
+    // Ignore missing values
+    return ''
+  }
 }
 
 async function readDevice(device) {
