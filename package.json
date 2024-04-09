@@ -221,14 +221,11 @@
     },
     "linux": {
       "target": [
-        "snap"
+        "snap",
+        "AppImage",
+        "deb"
       ],
-      "category": "Utility",
-      "desktop": {
-        "Name": "Battery Notifier",
-        "Comment": "Notifies you when a device battery is too low or too high.",
-        "Icon": "assets/icon.png"
-      }
+      "category": "Utility"
     },
     "appImage": {
       "desktop": {

@@ -1,8 +1,6 @@
 import { Notification } from 'electron';
 
 export function showLowBatteryNotification(device, percent) {
-
-  console.log('Low battery ', );
   showNotification({
     title: `Low battery`,
     body: `${device} battery is at ${percent}%`
