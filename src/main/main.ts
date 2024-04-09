@@ -14,8 +14,9 @@ import {autoUpdater} from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import {resolveHtmlPath} from './util';
-import {getAllDeviceInfo, showHighBatteryNotification, showLowBatteryNotification} from "./battery";
+import {showHighBatteryNotification, showLowBatteryNotification} from "./battery";
 import Store from 'electron-store';
+import { getAllDeviceInfo } from './power_supply';
 
 const store = new Store();
 
@@ -43,7 +44,6 @@ let tray;
 
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo()
-  console.log('devices: ', devices);
   event.reply('receive-devices', devices);
 });
 
@@ -59,7 +59,6 @@ ipcMain.on('electron-store-set', async (event, key, val) => {
 
 const task = async function () {
   const devices = await getAllDeviceInfo()
-  console.log('devices: ', devices);
   const preferences = store.get('battery') || {}
   runBatteryNotification(devices, preferences)
 }
@@ -212,7 +211,6 @@ const createWindow = async () => {
     if (!app.isQuiting) {
       event.preventDefault();
       mainWindow.hide(); // Hide the window instead of closing it
-      console.log('Hide ', );
     }
     return false;
   });
