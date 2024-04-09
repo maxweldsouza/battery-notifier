@@ -1,28 +1,10 @@
 import {Notification} from "electron";
 import {exec as execCallback} from 'child_process'
-import dbus from 'dbus-next'
+import { observe } from './power_supply'
 
 const { promisify } = require('util');
 
 const exec = promisify(execCallback)
-
-async function dbusTest () {
-  console.log('dbusTest ', );
- const bus = dbus.systemBus();
- console.log('bus: ', bus);
-  const upower = await bus.getProxyObject('org.freedesktop.UPower', '/org/freedesktop/UPower');
-  console.log('upower: ', upower);
-  const upowerIface = upower.getInterface('org.freedesktop.UPower');
-  console.log('upowerIface: ', upowerIface);
-
-  upowerIface.on('DeviceAdded', (path) => {
-    console.log(`Device added: ${path}`);
-  });
-
-  upowerIface.on('DeviceRemoved', (path) => {
-    console.log(`Device removed: ${path}`);
-  });
-}
 
 async function getDevices() {
   try {
@@ -62,7 +44,7 @@ async function getDeviceInfo(devicePath) {
   }
 }
 
-function extractNumberFromString(str) {
+export function extractNumberFromString(str) {
   const match = str.match(/\d+/); // This regex matches one or more digits
   if (match) {
     return parseInt(match[0], 10); // Convert the matched string to an integer
@@ -71,7 +53,7 @@ function extractNumberFromString(str) {
   }
 }
 
-function transformDeviceInfo(deviceInfo) {
+export function transformDeviceInfo(deviceInfo) {
   if (deviceInfo.percentage) {
     deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage)
   }
@@ -79,13 +61,7 @@ function transformDeviceInfo(deviceInfo) {
 }
 
 export async function getAllDeviceInfo() {
-  const devices = await getDevices();
-  const result = []
-  for (let device of devices) {
-    const obj = await getDeviceInfo(device)
-    result.push(obj)
-  }
-  return result.filter(x => x.model).map(transformDeviceInfo)
+  return await observe()
 }
 
 export function showLowBatteryNotification(device, percent) {

@@ -43,6 +43,7 @@ let tray;
 
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo()
+  console.log('devices: ', devices);
   event.reply('receive-devices', devices);
 });
 
@@ -58,6 +59,7 @@ ipcMain.on('electron-store-set', async (event, key, val) => {
 
 const task = async function () {
   const devices = await getAllDeviceInfo()
+  console.log('devices: ', devices);
   const preferences = store.get('battery') || {}
   runBatteryNotification(devices, preferences)
 }
@@ -70,7 +72,7 @@ function setIcon (tray, icon) {
 }
 
 function getBatteryIcon (devices) {
-  const minBattery = Math.min(...devices.map(x => x.percentage))
+  const minBattery = Math.min(...devices.map(x => x.capacity))
   if (minBattery <= 20) {
     return batteryLowIcon
   } else if (minBattery <= 80) {
@@ -84,13 +86,13 @@ function runBatteryNotification (devices, preferences) {
   if (devices.length <= 0) return
 
   for (let device of devices) {
-    if (device.percentage <= 20 && preferences[device['native-path']]?.low !== false
+    if (device.capacity <= 20 && preferences[device['native-path']]?.low !== false
     && device.status === 'discharging') {
-      showLowBatteryNotification(device.model, device.percentage)
+      showLowBatteryNotification(device.model, device.capacity)
     }
-    if (device.percentage >= 80 && preferences[device['native-path']]?.high !== false
+    if (device.capacity >= 80 && preferences[device['native-path']]?.high !== false
     && device.status === 'charging') {
-      showHighBatteryNotification(device.model, device.percentage)
+      showHighBatteryNotification(device.model, device.capacity)
     }
   }
 

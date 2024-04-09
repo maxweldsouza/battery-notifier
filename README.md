@@ -3,6 +3,8 @@
 An app that notifies you when a device battery discharges to 20% or charges to 80%.
 
 TODO
+https://forum.snapcraft.io/t/upower-snap-deprecation/14772/3
+
 upower --monitor-detail
 Generate snapcraft.yaml from cat /snap/battery-notifier/current/meta/snap.yaml
 

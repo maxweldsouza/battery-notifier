@@ -76,10 +76,10 @@ function Battery(props) {
           const id = row['native-path'];
           return <Tr key={id}>
             <Th>
-              {row.model}
+              {row.model_name}
             </Th>
             <Th>
-              {row.percentage}%
+              {row.capacity}%
             </Th>
             <Th>
               <Status>
@@ -90,7 +90,7 @@ function Battery(props) {
                 {/*4: Fully charged*/}
                 {/*5: Pending charge*/}
                 {/*6: Pending discharge*/}
-                {humanizeStatus(row.state)}
+                {humanizeStatus(row.status)}
               </Status>
             </Th>
             <Th>

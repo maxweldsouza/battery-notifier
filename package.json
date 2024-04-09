@@ -220,7 +220,7 @@
     },
     "linux": {
       "target": [
-        "deb"
+        "snap"
       ],
       "category": "Utility",
       "desktop": {
@@ -236,7 +236,7 @@
     },
     "snap": {
       "base": "core22",
-      "confinement": "classic",
+      "confinement": "devmode",
       "plugs": [
         "upower-observe",
         "home",
