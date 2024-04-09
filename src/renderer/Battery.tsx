@@ -10,6 +10,7 @@ import Th from '../shared/Th';
 import Thead from '../shared/Thead';
 import Tbody from '../shared/Tbody';
 import Status from './Status';
+import { isNumber } from 'lodash-es';
 
 const MIN_IN_MILLISECONDS = 60 * 1000;
 const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
@@ -79,7 +80,11 @@ function Battery(props) {
               {row.model_name}
             </Th>
             <Th>
-              {row.capacity}%
+              {isNumber(row.capacity) ?
+                <>
+                {row.capacity}%
+                </>
+                : '-'}
             </Th>
             <Th>
               <Status>

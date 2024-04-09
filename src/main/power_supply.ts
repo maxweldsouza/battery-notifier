@@ -38,9 +38,9 @@ export async function observe() {
 async function readProp(dirPath, file) {
   const filePath = path.join(dirPath, file);
   try {
-    let value = await fsPromise.readFile(filePath);
-    value = value.toString().trim();
-    return value;
+    const value = await fsPromise.readFile(filePath);
+    const strValue = value.toString().trim();
+    return strValue;
   } catch (e) {
     // console.log('e: ', e, filePath);
     return '';
