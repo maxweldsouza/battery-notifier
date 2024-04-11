@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useInterval, useMountedState, useSetState } from 'react-use';
+import React, { useEffect } from 'react';
+import { useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
 import NormalContainer from '../shared/NormalContainer';
 import Button from '../shared/Button';
@@ -40,13 +40,6 @@ function Battery() {
       ipcRenderer.removeAllListeners('receive-devices');
     };
   }, [setData]);
-
-  // useInterval(
-  //   () => {
-  //     ipcRenderer.sendMessage('get-devices');
-  //   },
-  //   isMounted ? REFRESH_INTERVAL : null
-  // );
 
   const saveState = (id, key, value) => {
     setPreferences({
@@ -112,13 +105,6 @@ function Battery() {
           })}
         </Tbody>
       </Table>
-      <Button
-        onClick={() => {
-          ipcRenderer.sendMessage('get-devices');
-        }}
-      >
-        Refresh
-      </Button>
     </NormalContainer>
   );
 }

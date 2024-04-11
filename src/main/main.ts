@@ -12,20 +12,31 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { spawn } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
   getAllDeviceInfo,
   showHighBatteryNotification,
-  showLowBatteryNotification, transformDeviceInfo
+  showLowBatteryNotification,
+  transformDeviceInfo,
 } from './battery';
 import initializeStore from '../shared/electron/store/electronStoreMain';
-import { spawn } from 'child_process';
 
-const store = initializeStore();
+initializeStore();
 
-const MIN_IN_MILISECONDS = 60 * 1000;
-const BATTERY_CHECK_INTERVAL = 10 * MIN_IN_MILISECONDS;
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../assets');
+
+const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
+};
+
+const batteryFullIcon = getAssetPath('battery-full.png');
+const batteryHalfIcon = getAssetPath('battery-half.png');
+const batteryLowIcon = getAssetPath('battery-low.png');
+
 
 /* TODO
 
@@ -86,7 +97,7 @@ function watchUpower() {
           deviceBlock = ''; // Reset for the next device block
         }
       }
-      deviceBlock += line + '\n';
+      deviceBlock += `${line}\n`;
     });
   });
 
@@ -103,16 +114,7 @@ function watchUpower() {
   });
 }
 
-const task = async function () {
-  const devices = await getAllDeviceInfo();
-  const preferences = store.get('battery') || {};
-  runBatteryNotification(devices, preferences);
-};
-
-task().then();
-setInterval(task, BATTERY_CHECK_INTERVAL);
-
-function setIcon(tray, icon) {
+function setIcon(icon) {
   tray?.setImage(icon);
 }
 
@@ -134,7 +136,10 @@ function getBatteryIcon(devices) {
 function runBatteryNotification(devices, preferences) {
   if (devices.length <= 0) return;
 
-  for (const device of devices) {
+  const keys = Object.keys(devices);
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    const device = devices[key];
     if (
       device.capacity <= 20 &&
       preferences[device['native-path']]?.low !== false &&
@@ -151,7 +156,7 @@ function runBatteryNotification(devices, preferences) {
     }
   }
 
-  setIcon(tray, getBatteryIcon(devices));
+  setIcon(getBatteryIcon(devices));
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -205,18 +210,6 @@ export async function showTrayIcon() {
   tray.setContextMenu(contextMenu);
   tray.setToolTip('Battery Notifier');
 }
-
-const RESOURCES_PATH = app.isPackaged
-  ? path.join(process.resourcesPath, 'assets')
-  : path.join(__dirname, '../../assets');
-
-const getAssetPath = (...paths: string[]): string => {
-  return path.join(RESOURCES_PATH, ...paths);
-};
-
-const batteryFullIcon = getAssetPath('battery-full.png');
-const batteryHalfIcon = getAssetPath('battery-half.png');
-const batteryLowIcon = getAssetPath('battery-low.png');
 
 const createWindow = async () => {
   if (isDebug) {
