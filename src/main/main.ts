@@ -191,7 +191,7 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
-export async function showTrayIcon() {
+async function showTrayIcon() {
   const devices = await getAllDeviceInfo();
   const icon = getBatteryIcon(devices);
   tray = new Tray(icon); // Path to your tray icon
@@ -212,7 +212,7 @@ export async function showTrayIcon() {
     },
   ]);
 
-  setIcon(tray, batteryHalfIcon);
+  setIcon(batteryHalfIcon);
 
   tray.setContextMenu(contextMenu);
   tray.setToolTip('Battery Notifier');

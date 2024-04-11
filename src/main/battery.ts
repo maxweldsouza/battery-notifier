@@ -59,15 +59,12 @@ export function transformDeviceInfo(deviceInfo) {
 export async function getAllDeviceInfo() {
   const devices = await getDevices();
   const result = {};
-  console.log('devices: ', devices);
   for (const device of devices) {
     const obj = await getDeviceInfo(device);
-    console.log('obj: ', obj);
     if (obj['native-path']) {
       result[obj['native-path']] = transformDeviceInfo(obj);
     }
   }
-  console.log('result: ', result);
   return result;
 }
 
