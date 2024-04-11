@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useInterval, useMountedState } from 'react-use';
+import { useInterval, useMountedState, useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
 import NormalContainer from '../shared/NormalContainer';
 import Button from '../shared/Button';
@@ -19,15 +19,21 @@ const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 const humanizeStatus = (status) => status?.replace('-', ' ');
 
 function Battery() {
-  const [data, setData] = useState([]);
-  // TODO useElectronStore from shared
+  const [data, setData] = useSetState({});
+  console.log('data: ', data);
   const [preferences, setPreferences] = useElectronStore('battery', {});
 
   const isMounted = useMountedState();
 
   useEffect(() => {
-    ipcRenderer.on('receive-devices', (event: []) => {
-      setData(event);
+    ipcRenderer.on('receive-device-update', (device) => {
+      setData(device);
+    });
+  }, [setData]);
+
+  useEffect(() => {
+    ipcRenderer.on('receive-devices', (devices) => {
+      setData(devices);
     });
     ipcRenderer.sendMessage('get-devices');
     // Clean the listener after the component is dismounted
@@ -63,12 +69,15 @@ function Battery() {
           </Tr>
         </Thead>
         <Tbody>
-          {data.map((row) => {
+          {Object.keys(data).map((key) => {
+            const row = data[key];
             const id = row['native-path'];
             return (
               <Tr key={id}>
-                <Th>{row.model_name}</Th>
-                <Th>{isNumber(row.capacity) ? <>{row.capacity}%</> : '-'}</Th>
+                <Th>{row.model}</Th>
+                <Th>
+                  {isNumber(row.percentage) ? <>{row.percentage}%</> : '-'}
+                </Th>
                 <Th>
                   <Status>
                     {/* 0: Unknown */}
@@ -78,7 +87,7 @@ function Battery() {
                     {/* 4: Fully charged */}
                     {/* 5: Pending charge */}
                     {/* 6: Pending discharge */}
-                    {humanizeStatus(row.status)}
+                    {humanizeStatus(row.state)}
                   </Status>
                 </Th>
                 <Th>

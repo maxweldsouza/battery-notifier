@@ -15,13 +15,13 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
+  getAllDeviceInfo,
   showHighBatteryNotification,
   showLowBatteryNotification,
 } from './battery';
-import { getAllDeviceInfo } from './power_supply';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 
-initializeStore();
+const store = initializeStore();
 
 const MIN_IN_MILISECONDS = 60 * 1000;
 const BATTERY_CHECK_INTERVAL = 10 * MIN_IN_MILISECONDS;
