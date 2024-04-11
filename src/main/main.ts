@@ -117,7 +117,9 @@ function setIcon(tray, icon) {
 }
 
 function getBatteryIcon(devices) {
-  const minBattery = Math.min(...devices.map((x) => x.capacity));
+  const minBattery = Math.min(
+    ...Object.values(devices).map((x) => x.percentage)
+  );
   if (minBattery <= 20) {
     return batteryLowIcon;
   }

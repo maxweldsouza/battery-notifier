@@ -21,13 +21,11 @@ const humanizeStatus = (status) => status?.replace('-', ' ');
 function Battery() {
   const [data, setData] = useSetState({});
   const [preferences, setPreferences] = useElectronStore('battery', {});
-  console.log('Object.keys(data): ', Object.keys(data));
 
   // const isMounted = useMountedState();
 
   useEffect(() => {
     ipcRenderer.on('device-update', (device) => {
-      console.log('device: ', device);
       setData(device);
     });
   }, [setData]);
