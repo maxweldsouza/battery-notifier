@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
-const ipcRenderer = window.electron.ipcRenderer;
 import { useInterval, useMountedState } from 'react-use';
+import { isNumber } from 'lodash-es';
 import NormalContainer from '../shared/NormalContainer';
 import Button from '../shared/Button';
 import Table from '../shared/Table';
@@ -10,15 +9,17 @@ import Th from '../shared/Th';
 import Thead from '../shared/Thead';
 import Tbody from '../shared/Tbody';
 import Status from './Status';
-import { isNumber } from 'lodash-es';
+
+const { ipcRenderer } = window.electron;
 
 const MIN_IN_MILLISECONDS = 60 * 1000;
 const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 
-const humanizeStatus = status => status?.replace('-', ' ')
+const humanizeStatus = (status) => status?.replace('-', ' ');
 
 function Battery(props) {
   const [data, setData] = useState([]);
+  // TODO useElectronStore from shared
   const [preferences, setPreferences] = useState({});
 
   const isMounted = useMountedState();
@@ -39,22 +40,24 @@ function Battery(props) {
     return () => {
       ipcRenderer.removeAllListeners('receive-devices');
     };
-
   }, []);
 
-  useInterval(() => {
-    ipcRenderer.sendMessage('get-devices');
-  }, isMounted ? REFRESH_INTERVAL : null);
+  useInterval(
+    () => {
+      ipcRenderer.sendMessage('get-devices');
+    },
+    isMounted ? REFRESH_INTERVAL : null
+  );
 
   const saveState = (id, key, value) => {
-    setPreferences(state => {
+    setPreferences((state) => {
       const newPreferences = {
         ...state,
         [id]: {
           ...state[id],
-          [key]: value
-        }
-      }
+          [key]: value,
+        },
+      };
       window.electron.store.set('battery', newPreferences);
       return newPreferences;
     });
@@ -64,62 +67,62 @@ function Battery(props) {
       <Table>
         <Thead>
           <Tr>
-          <Th>Device</Th>
-          <Th>Percentage</Th>
-          <Th>Status</Th>
-          <Th>Low notification</Th>
-          <Th>High notification</Th>
+            <Th>Device</Th>
+            <Th>Percentage</Th>
+            <Th>Status</Th>
+            <Th>Low notification</Th>
+            <Th>High notification</Th>
           </Tr>
-
         </Thead>
         <Tbody>
-        {data.map(row => {
-          const id = row['native-path'];
-          return <Tr key={id}>
-            <Th>
-              {row.model_name}
-            </Th>
-            <Th>
-              {isNumber(row.capacity) ?
-                <>
-                {row.capacity}%
-                </>
-                : '-'}
-            </Th>
-            <Th>
-              <Status>
-                {/*0: Unknown*/}
-                {/*1: Charging*/}
-                {/*2: Discharging*/}
-                {/*3: Empty*/}
-                {/*4: Fully charged*/}
-                {/*5: Pending charge*/}
-                {/*6: Pending discharge*/}
-                {humanizeStatus(row.status)}
-              </Status>
-            </Th>
-            <Th>
-
-              <input type={'checkbox'} checked={preferences[id]?.low !== false}
-                     onChange={e => {
-                       saveState(id, 'low', e.target.checked);
-                     }}
-              />
-            </Th>
-            <Th>
-              <input type={'checkbox'} checked={preferences[id]?.high !== false}
-                     onChange={e => {
-                       saveState(id, 'high', e.target.checked);
-                     }}
-              />
-            </Th>
-          </Tr>;
-        })}
+          {data.map((row) => {
+            const id = row['native-path'];
+            return (
+              <Tr key={id}>
+                <Th>{row.model_name}</Th>
+                <Th>{isNumber(row.capacity) ? <>{row.capacity}%</> : '-'}</Th>
+                <Th>
+                  <Status>
+                    {/* 0: Unknown */}
+                    {/* 1: Charging */}
+                    {/* 2: Discharging */}
+                    {/* 3: Empty */}
+                    {/* 4: Fully charged */}
+                    {/* 5: Pending charge */}
+                    {/* 6: Pending discharge */}
+                    {humanizeStatus(row.status)}
+                  </Status>
+                </Th>
+                <Th>
+                  <input
+                    type="checkbox"
+                    checked={preferences[id]?.low !== false}
+                    onChange={(e) => {
+                      saveState(id, 'low', e.target.checked);
+                    }}
+                  />
+                </Th>
+                <Th>
+                  <input
+                    type="checkbox"
+                    checked={preferences[id]?.high !== false}
+                    onChange={(e) => {
+                      saveState(id, 'high', e.target.checked);
+                    }}
+                  />
+                </Th>
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
-      <Button onClick={() => {
-        ipcRenderer.sendMessage('get-devices');
-      }}>Refresh</Button>
+      <Button
+        onClick={() => {
+          ipcRenderer.sendMessage('get-devices');
+        }}
+      >
+        Refresh
+      </Button>
     </NormalContainer>
   );
 }
