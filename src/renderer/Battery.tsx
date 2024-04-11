@@ -13,20 +13,21 @@ import useElectronStore from '../shared/electron/store/useElectronStoreState';
 
 const { ipcRenderer } = window.electron;
 
-const MIN_IN_MILLISECONDS = 60 * 1000;
-const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
+// const MIN_IN_MILLISECONDS = 60 * 1000;
+// const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 
 const humanizeStatus = (status) => status?.replace('-', ' ');
 
 function Battery() {
   const [data, setData] = useSetState({});
-  console.log('data: ', data);
   const [preferences, setPreferences] = useElectronStore('battery', {});
+  console.log('Object.keys(data): ', Object.keys(data));
 
-  const isMounted = useMountedState();
+  // const isMounted = useMountedState();
 
   useEffect(() => {
-    ipcRenderer.on('receive-device-update', (device) => {
+    ipcRenderer.on('device-update', (device) => {
+      console.log('device: ', device);
       setData(device);
     });
   }, [setData]);
@@ -40,14 +41,14 @@ function Battery() {
     return () => {
       ipcRenderer.removeAllListeners('receive-devices');
     };
-  }, []);
+  }, [setData]);
 
-  useInterval(
-    () => {
-      ipcRenderer.sendMessage('get-devices');
-    },
-    isMounted ? REFRESH_INTERVAL : null
-  );
+  // useInterval(
+  //   () => {
+  //     ipcRenderer.sendMessage('get-devices');
+  //   },
+  //   isMounted ? REFRESH_INTERVAL : null
+  // );
 
   const saveState = (id, key, value) => {
     setPreferences({

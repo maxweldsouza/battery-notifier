@@ -18,55 +18,6 @@ async function getDevices() {
   }
 }
 
-function parseDeviceInfo(deviceBlock) {
-  const deviceInfo = {};
-  const infoLines = deviceBlock
-    .split('\n')
-    .filter((line) => line.trim() !== '' && !line.startsWith('['));
-
-  infoLines.forEach((line) => {
-    const [key, ...value] = line.split(':');
-    if (key && value.length > 0) {
-      deviceInfo[key.trim()] = value.join(':').trim();
-    }
-  });
-
-  console.log(deviceInfo); // Here you can decide how to further process or store the parsed information
-}
-
-function watchUpower() {
-  const upower = spawn('upower', ['--monitor-detail']);
-
-  let deviceBlock = '';
-
-  upower.stdout.on('data', (data) => {
-    const output = data.toString();
-    const lines = output.split('\n');
-
-    lines.forEach((line) => {
-      if (line.startsWith('[')) {
-        if (deviceBlock) {
-          parseDeviceInfo(deviceBlock); // Parse the accumulated device info
-          deviceBlock = ''; // Reset for the next device block
-        }
-      }
-      deviceBlock += line + '\n';
-    });
-  });
-
-  upower.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`);
-  });
-
-  upower.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-    if (deviceBlock) {
-      // Parse any remaining device block
-      parseDeviceInfo(deviceBlock);
-    }
-  });
-}
-
 async function getDeviceInfo(devicePath) {
   try {
     const { stdout } = await exec(`upower -i ${devicePath}`);
@@ -79,7 +30,7 @@ async function getDeviceInfo(devicePath) {
     infoLines.forEach((line) => {
       const [key, ...value] = line.split(':');
       if (key && value.length > 0) {
-        deviceInfo[key.trim()] = value.join('').trim();
+        deviceInfo[key.trim()] = value.join(':').trim();
       }
     });
 
@@ -98,7 +49,7 @@ function extractNumberFromString(str) {
   return null; // Return null if no number is found
 }
 
-function transformDeviceInfo(deviceInfo) {
+export function transformDeviceInfo(deviceInfo) {
   if (deviceInfo.percentage) {
     deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage);
   }

@@ -17,9 +17,10 @@ import { resolveHtmlPath } from './util';
 import {
   getAllDeviceInfo,
   showHighBatteryNotification,
-  showLowBatteryNotification,
+  showLowBatteryNotification, transformDeviceInfo
 } from './battery';
 import initializeStore from '../shared/electron/store/electronStoreMain';
+import { spawn } from 'child_process';
 
 const store = initializeStore();
 
@@ -48,6 +49,59 @@ ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo();
   event.reply('receive-devices', devices);
 });
+
+function parseDeviceInfo(deviceBlock) {
+  const deviceInfo = {};
+  const infoLines = deviceBlock
+    .split('\n')
+    .filter((line) => line.trim() !== '' && !line.startsWith('['));
+
+  infoLines.forEach((line) => {
+    const [key, ...value] = line.split(':');
+    if (key && value.length > 0) {
+      deviceInfo[key.trim()] = value.join(':').trim();
+    }
+  });
+
+  if (deviceInfo['native-path']) {
+    mainWindow?.webContents.send('device-update', {
+      [deviceInfo['native-path']]: transformDeviceInfo(deviceInfo),
+    });
+  }
+}
+
+function watchUpower() {
+  const upower = spawn('upower', ['--monitor-detail']);
+
+  let deviceBlock = '';
+
+  upower.stdout.on('data', (data) => {
+    const output = data.toString();
+    const lines = output.split('\n');
+
+    lines.forEach((line) => {
+      if (line.startsWith('[')) {
+        if (deviceBlock) {
+          parseDeviceInfo(deviceBlock); // Parse the accumulated device info
+          deviceBlock = ''; // Reset for the next device block
+        }
+      }
+      deviceBlock += line + '\n';
+    });
+  });
+
+  upower.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  upower.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    if (deviceBlock) {
+      // Parse any remaining device block
+      parseDeviceInfo(deviceBlock);
+    }
+  });
+}
 
 const task = async function () {
   const devices = await getAllDeviceInfo();
@@ -236,6 +290,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+    watchUpower();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
