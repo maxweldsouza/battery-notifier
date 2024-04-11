@@ -23,7 +23,7 @@ import {
 } from './battery';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 
-initializeStore();
+const store = initializeStore();
 
 const RESOURCES_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'assets')
@@ -36,7 +36,6 @@ const getAssetPath = (...paths: string[]): string => {
 const batteryFullIcon = getAssetPath('battery-full.png');
 const batteryHalfIcon = getAssetPath('battery-half.png');
 const batteryLowIcon = getAssetPath('battery-low.png');
-
 
 /* TODO
 
@@ -56,8 +55,60 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let tray;
 
-ipcMain.on('get-devices', async (event, arg) => {
+function setIcon(icon) {
+  tray?.setImage(icon);
+}
+
+function getBatteryIcon(devices) {
+  const minBattery = Math.min(
+    ...Object.values(devices).map((x) => x.percentage)
+  );
+  if (minBattery <= 20) {
+    return batteryLowIcon;
+  }
+  if (minBattery <= 80) {
+    return batteryHalfIcon;
+  }
+  if (minBattery <= 100) {
+    return batteryFullIcon;
+  }
+  return batteryFullIcon;
+}
+
+function runDeviceBatteryNotification(device, preferences) {
+  if (
+    device.capacity <= 20 &&
+    preferences[device['native-path']]?.low !== false &&
+    device.status === 'discharging'
+  ) {
+    showLowBatteryNotification(device.model, device.capacity);
+  }
+  if (
+    device.capacity >= 80 &&
+    preferences[device['native-path']]?.high !== false &&
+    device.status === 'charging'
+  ) {
+    showHighBatteryNotification(device.model, device.capacity);
+  }
+}
+
+function runBatteryNotification(devices, preferences) {
+  if (devices.length <= 0) return;
+
+  const keys = Object.keys(devices);
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    const device = devices[key];
+    runDeviceBatteryNotification(device, preferences);
+  }
+
+  setIcon(getBatteryIcon(devices));
+}
+
+ipcMain.on('get-devices', async (event) => {
   const devices = await getAllDeviceInfo();
+  const preferences = store.get('battery');
+  runBatteryNotification(devices, preferences);
   event.reply('receive-devices', devices);
 });
 
@@ -114,50 +165,6 @@ function watchUpower() {
   });
 }
 
-function setIcon(icon) {
-  tray?.setImage(icon);
-}
-
-function getBatteryIcon(devices) {
-  const minBattery = Math.min(
-    ...Object.values(devices).map((x) => x.percentage)
-  );
-  if (minBattery <= 20) {
-    return batteryLowIcon;
-  }
-  if (minBattery <= 80) {
-    return batteryHalfIcon;
-  }
-  if (minBattery <= 100) {
-    return batteryFullIcon;
-  }
-}
-
-function runBatteryNotification(devices, preferences) {
-  if (devices.length <= 0) return;
-
-  const keys = Object.keys(devices);
-  for (let i = 0; i < keys.length; i += 1) {
-    const key = keys[i];
-    const device = devices[key];
-    if (
-      device.capacity <= 20 &&
-      preferences[device['native-path']]?.low !== false &&
-      device.status === 'discharging'
-    ) {
-      showLowBatteryNotification(device.model, device.capacity);
-    }
-    if (
-      device.capacity >= 80 &&
-      preferences[device['native-path']]?.high !== false &&
-      device.status === 'charging'
-    ) {
-      showHighBatteryNotification(device.model, device.capacity);
-    }
-  }
-
-  setIcon(getBatteryIcon(devices));
-}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
