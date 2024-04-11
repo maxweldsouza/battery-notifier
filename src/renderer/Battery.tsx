@@ -9,6 +9,7 @@ import Th from '../shared/Th';
 import Thead from '../shared/Thead';
 import Tbody from '../shared/Tbody';
 import Status from './Status';
+import useElectronStore from '../shared/electron/store/useElectronStoreState';
 
 const { ipcRenderer } = window.electron;
 
@@ -17,22 +18,15 @@ const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 
 const humanizeStatus = (status) => status?.replace('-', ' ');
 
-function Battery(props) {
+function Battery() {
   const [data, setData] = useState([]);
   // TODO useElectronStore from shared
-  const [preferences, setPreferences] = useState({});
+  const [preferences, setPreferences] = useElectronStore('battery', {});
 
   const isMounted = useMountedState();
 
   useEffect(() => {
-    const preferences = window.electron.store.get('battery');
-    if (preferences) {
-      setPreferences(preferences);
-    }
-  }, []);
-
-  useEffect(() => {
-    ipcRenderer.on('receive-devices', (event: [], arg) => {
+    ipcRenderer.on('receive-devices', (event: []) => {
       setData(event);
     });
     ipcRenderer.sendMessage('get-devices');
@@ -50,16 +44,10 @@ function Battery(props) {
   );
 
   const saveState = (id, key, value) => {
-    setPreferences((state) => {
-      const newPreferences = {
-        ...state,
-        [id]: {
-          ...state[id],
-          [key]: value,
-        },
-      };
-      window.electron.store.set('battery', newPreferences);
-      return newPreferences;
+    setPreferences({
+      [id]: {
+        [key]: value,
+      },
     });
   };
   return (

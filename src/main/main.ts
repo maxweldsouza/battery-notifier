@@ -12,7 +12,6 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import Store from 'electron-store';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
@@ -20,8 +19,9 @@ import {
   showLowBatteryNotification,
 } from './battery';
 import { getAllDeviceInfo } from './power_supply';
+import initializeStore from '../shared/electron/store/electronStoreMain';
 
-const store = new Store();
+initializeStore();
 
 const MIN_IN_MILISECONDS = 60 * 1000;
 const BATTERY_CHECK_INTERVAL = 10 * MIN_IN_MILISECONDS;
@@ -47,15 +47,6 @@ let tray;
 ipcMain.on('get-devices', async (event, arg) => {
   const devices = await getAllDeviceInfo();
   event.reply('receive-devices', devices);
-});
-
-ipcMain.on('electron-store-get', async (event, val) => {
-  event.returnValue = store.get(val);
-});
-ipcMain.on('electron-store-set', async (event, key, val) => {
-  if (val) {
-    store.set(key, val);
-  }
 });
 
 const task = async function () {

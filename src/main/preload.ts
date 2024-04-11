@@ -1,19 +1,12 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import electronStorePreload from '../shared/electron/store/electronStorePreload';
 
 export type Channels = 'get-devices' | 'receive-devices';
 
 const electronHandler = {
-  store: {
-    get(key) {
-      return ipcRenderer.sendSync('electron-store-get', key);
-    },
-    set(property, val) {
-      ipcRenderer.send('electron-store-set', property, val);
-    },
-    // Other method you want to add like has(), reset(), etc.
-  },
+  ...electronStorePreload,
   ipcRenderer: {
     removeAllListeners(channel: Channels) {
       ipcRenderer.removeAllListeners(channel)
