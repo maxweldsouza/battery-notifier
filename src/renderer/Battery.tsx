@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
 import NormalContainer from '../shared/NormalContainer';
-import Button from '../shared/Button';
 import Table from '../shared/Table';
 import Tr from '../shared/Tr';
 import Th from '../shared/Th';
