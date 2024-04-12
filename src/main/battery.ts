@@ -1,5 +1,5 @@
 import { Notification } from 'electron';
-import { exec as execCallback, spawn } from 'child_process';
+import { exec as execCallback } from 'child_process';
 
 const { promisify } = require('util');
 
@@ -18,26 +18,27 @@ async function getDevices() {
   }
 }
 
+function parseOutput(output) {
+  const deviceInfo = {};
+  output
+    .split('\n')
+    .filter((line) => line.trim() !== '')
+    .forEach((line) => {
+      const [key, ...valueParts] = line.split(':');
+      if (key && valueParts.length) {
+        deviceInfo[key.trim()] = valueParts.join(':').trim();
+      }
+    });
+  return deviceInfo;
+}
+
 async function getDeviceInfo(devicePath) {
   try {
     const { stdout } = await exec(`upower -i ${devicePath}`);
-    const infoLines = stdout
-      .toString()
-      .split('\n')
-      .filter((line) => line.trim() !== '');
-    const deviceInfo = {};
-
-    infoLines.forEach((line) => {
-      const [key, ...value] = line.split(':');
-      if (key && value.length > 0) {
-        deviceInfo[key.trim()] = value.join(':').trim();
-      }
-    });
-
-    return deviceInfo;
+    return parseOutput(stdout.toString());
   } catch (error) {
     console.error(`Error getting device info: ${error}`);
-    throw error; // Rethrow the error if you want the caller to handle it
+    throw error;
   }
 }
 
