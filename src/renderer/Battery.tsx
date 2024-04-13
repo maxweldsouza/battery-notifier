@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
+import styled from 'styled-components';
 import NormalContainer from '../shared/NormalContainer';
 import Table from '../shared/Table';
 import Tr from '../shared/Tr';
@@ -16,6 +17,10 @@ const { ipcRenderer } = window.electron;
 // const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
 
 const humanizeStatus = (status) => status?.replace('-', ' ');
+
+const LightText = styled.span`
+  color: #c2c2c2;
+`;
 
 function Battery() {
   const [data, setData] = useSetState({});
@@ -67,7 +72,14 @@ function Battery() {
               <Tr key={id}>
                 <Th>{row.model}</Th>
                 <Th>
-                  {isNumber(row.percentage) ? <>{row.percentage}%</> : '-'}
+                  {isNumber(row.percentage) ? (
+                    <>
+                      {row.percentage}
+                      <LightText> %</LightText>
+                    </>
+                  ) : (
+                    '-'
+                  )}
                 </Th>
                 <Th>
                   <Status>

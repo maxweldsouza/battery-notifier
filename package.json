@@ -1,4 +1,5 @@
 {
+  "name": "battery-notifier",
   "version": "0.1.0",
   "description": "A foundation for scalable desktop apps",
   "keywords": [
@@ -39,6 +40,8 @@
     "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
+    "build:package": "electron-packager . --out=out",
+    "build:snap": "electron-installer-snap --src=out/battery-notifier-linux-x64",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && npm run build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never && npm run build:dll",
@@ -97,6 +100,7 @@
     }
   },
   "dependencies": {
+    "@electron/packager": "^18.3.2",
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
@@ -136,6 +140,7 @@
     "electron": "^26.2.1",
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^3.2.0",
+    "electron-installer-snap": "^5.2.0",
     "electronmon": "^2.0.2",
     "eslint": "^8.49.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -222,8 +227,7 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        "snap"
       ],
       "category": "Utility"
     },
@@ -234,7 +238,15 @@
     },
     "snap": {
       "base": "core22",
-      "confinement": "strict"
+      "confinement": "strict",
+      "plugs": [
+        "default",
+        "upower-observe"
+      ],
+      "stagePackages": [
+        "default",
+        "upower"
+      ]
     },
     "directories": {
       "app": "release/app",
