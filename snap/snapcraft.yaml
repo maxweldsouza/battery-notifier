@@ -1,15 +1,16 @@
 name: battery-notifier
 version: '0.1.0'
-summary: Hello World Electron app
+summary: Battery Notifier
 description: |
   An app that notifies you when a device battery reaches 20 or 80 percent.
 base: core22
 confinement: strict
 grade: devel
+compression: lzo
 
 apps:
   battery-notifier:
-    command: battery-notifier --no-sandbox
+    command: electron/battery-notifier --no-sandbox
     extensions: [gnome]
     plugs:
       - browser-support
@@ -24,23 +25,16 @@ apps:
 parts:
   battery-notifer:
     plugin: dump
-    source: ./out/battery-notifier-linux-x64
+    source: .
     override-build: |
-      ls -la $SNAPCRAFT_PART_SRC
-      ls -la $SNAPCRAFT_PART_BUILD
-      ls -la $SNAPCRAFT_PART_INSTALL
-      ls -la $SNAPCRAFT_PRIME
-      ls -la $SNAPCRAFT_PROJECT_DIR
-      ls -la $SNAPCRAFT_STAGE
+      npx electron-packager release/app battery-notifier --overwrite --platform=linux --output=release/build --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      mv $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-* $SNAPCRAFT_PART_INSTALL/electron
 
       snapcraftctl build
 
       chmod -R 755 $SNAPCRAFT_PART_INSTALL
-
-      # Fix ownership and permissions for chrome-sandbox
-      echo "Setting SUID for chrome-sandbox..."
-      chmod 4755 $SNAPCRAFT_PART_INSTALL/chrome-sandbox
-      chown root:root $SNAPCRAFT_PART_INSTALL/chrome-sandbox
+    build-snaps:
+      - node/18/stable
 
   upower:
     plugin: nil
