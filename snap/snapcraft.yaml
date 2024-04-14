@@ -23,12 +23,14 @@ apps:
       TMPDIR: $XDG_RUNTIME_DIR
 
 parts:
-  battery-notifer:
+  battery-notifier:
     plugin: dump
     source: .
     override-build: |
-      npx electron-packager release/app battery-notifier --overwrite --platform=linux --output=release/build --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      npx @electron/packager ./release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       mv $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-* $SNAPCRAFT_PART_INSTALL/electron
+      mkdir $SNAPCRAFT_PART_INSTALL/electron/resources/assets
+      cp assets/*.* $SNAPCRAFT_PART_INSTALL/electron/resources/assets
 
       snapcraftctl build
 
