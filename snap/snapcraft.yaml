@@ -27,10 +27,13 @@ parts:
     plugin: dump
     source: .
     override-build: |
-      npx @electron/packager ./release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      mkdir -p source
+      find . -maxdepth 1 -mindepth 1 ! -name 'new_dir' -exec mv {} source/ \;
+      npx @electron/packager ./source/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       mv $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-* $SNAPCRAFT_PART_INSTALL/electron
       mkdir $SNAPCRAFT_PART_INSTALL/electron/resources/assets
-      cp assets/*.* $SNAPCRAFT_PART_INSTALL/electron/resources/assets
+      cp source/assets/*.* $SNAPCRAFT_PART_INSTALL/electron/resources/assets
+      rm -rf source
 
       snapcraftctl build
 
