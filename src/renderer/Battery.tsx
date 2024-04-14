@@ -10,6 +10,7 @@ import Thead from '../shared/Thead';
 import Tbody from '../shared/Tbody';
 import Status from './Status';
 import useElectronStore from '../shared/electron/store/useElectronStoreState';
+import CustomTable from './CustomTable';
 
 const { ipcRenderer } = window.electron;
 
@@ -54,11 +55,12 @@ function Battery() {
   };
   return (
     <NormalContainer>
-      <Table>
+      <CustomTable>
         <Thead>
           <Tr>
             <Th>Device</Th>
             <Th>Percentage</Th>
+            <Th />
             <Th>Status</Th>
             <Th>Low notification</Th>
             <Th>High notification</Th>
@@ -71,6 +73,11 @@ function Battery() {
             return (
               <Tr key={id}>
                 <Th>{row.model}</Th>
+                <Th>
+                  <progress max="100" value={row.percentage}>
+                    {row.percentage}%
+                  </progress>
+                </Th>
                 <Th>
                   {isNumber(row.percentage) ? (
                     <>
@@ -115,7 +122,7 @@ function Battery() {
             );
           })}
         </Tbody>
-      </Table>
+      </CustomTable>
     </NormalContainer>
   );
 }
