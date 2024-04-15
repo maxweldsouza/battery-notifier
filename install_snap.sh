@@ -1,4 +1,4 @@
-cd electron
+cd electron || exit
 ts-node ./.erb/scripts/clean.js dist && npm run build
 cd ..
 snapcraft -v
