@@ -33,7 +33,7 @@ parts:
     override-build: |
       npx @electron/packager ./electron/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       mkdir $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
-      cp electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
+      cp ./electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
       rm -rf electron
 
       snapcraftctl build
