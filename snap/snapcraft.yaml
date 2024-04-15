@@ -16,10 +16,7 @@ apps:
       - browser-support
       - network
       - network-bind
-      - desktop
       - unity7
-      - wayland
-      - x11
       - upower-observe
     environment:
       # Correct the TMPDIR path for Chromium Framework/Electron to ensure
@@ -33,7 +30,7 @@ parts:
     override-build: |
       npx @electron/packager ./electron/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       mkdir $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
-      cp ./electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
+      cp ./electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets || exit
       rm -rf electron
 
       snapcraftctl build
