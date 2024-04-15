@@ -1,5 +1,5 @@
 name: battery-notifier
-version: '0.2.0'
+version: '0.1.0'
 summary: Battery Notifier
 description: |
   An app that notifies you when a device battery reaches 20 or 80 percent.
@@ -10,7 +10,7 @@ compression: lzo
 
 apps:
   battery-notifier:
-    command: electron/battery-notifier --no-sandbox
+    command: battery-notifier-linux-x64/battery-notifier --no-sandbox
     extensions: [gnome]
     plugs:
       - browser-support
@@ -31,13 +31,10 @@ parts:
     plugin: dump
     source: .
     override-build: |
-      mkdir -p source
-      find . -maxdepth 1 -mindepth 1 ! -name 'source' -exec mv {} source/ \;
-      npx @electron/packager ./source/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
-      mv $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-* $SNAPCRAFT_PART_INSTALL/electron
-      mkdir $SNAPCRAFT_PART_INSTALL/electron/resources/assets
-      cp source/assets/*.* $SNAPCRAFT_PART_INSTALL/electron/resources/assets
-      rm -rf source
+      npx @electron/packager ./electron/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      mkdir $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
+      cp electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
+      rm -rf electron
 
       snapcraftctl build
 
