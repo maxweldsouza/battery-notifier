@@ -1,11 +1,11 @@
 name: battery-notifier
-version: '0.1.0'
+version: '0.2.0'
 summary: Battery Notifier
 description: |
   An app that notifies you when a device battery reaches 20 or 80 percent.
 base: core22
 confinement: strict
-grade: devel
+grade: stable
 compression: lzo
 
 apps:
@@ -16,6 +16,10 @@ apps:
       - browser-support
       - network
       - network-bind
+      - desktop
+      - unity7
+      - wayland
+      - x11
       - upower-observe
     environment:
       # Correct the TMPDIR path for Chromium Framework/Electron to ensure
@@ -28,7 +32,7 @@ parts:
     source: .
     override-build: |
       mkdir -p source
-      find . -maxdepth 1 -mindepth 1 ! -name 'new_dir' -exec mv {} source/ \;
+      find . -maxdepth 1 -mindepth 1 ! -name 'source' -exec mv {} source/ \;
       npx @electron/packager ./source/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       mv $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-* $SNAPCRAFT_PART_INSTALL/electron
       mkdir $SNAPCRAFT_PART_INSTALL/electron/resources/assets
