@@ -26,16 +26,18 @@ apps:
 parts:
   battery-notifier:
     plugin: dump
-    source: .
+    source: ./electron
     override-build: |
-      npx @electron/packager ./electron/release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      pwd
+      ls -la $SNAPCRAFT_PART_INSTALL
+      npx @electron/packager ./release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
+      ls -la $SNAPCRAFT_PART_INSTALL
       mkdir $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
-      cp ./electron/assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets || exit
-      rm -rf electron
+      cp ./assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets || exit
 
-      snapcraftctl build
-
+      ls -la $SNAPCRAFT_PART_INSTALL
       chmod -R 755 $SNAPCRAFT_PART_INSTALL
+      ls -la $SNAPCRAFT_PART_INSTALL
     build-snaps:
       - node/18/stable
 
