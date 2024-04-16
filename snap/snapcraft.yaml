@@ -33,7 +33,7 @@ parts:
       npx @electron/packager ./release/app battery-notifier --overwrite --platform=linux --prune=true --out=$SNAPCRAFT_PART_INSTALL/
       ls -la $SNAPCRAFT_PART_INSTALL
       mkdir $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets
-      cp ./assets/*.* $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources/assets || exit
+      cp -r ./assets $SNAPCRAFT_PART_INSTALL/battery-notifier-linux-x64/resources || exit
 
       ls -la $SNAPCRAFT_PART_INSTALL
       chmod -R 755 $SNAPCRAFT_PART_INSTALL
