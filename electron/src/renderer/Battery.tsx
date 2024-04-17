@@ -14,9 +14,6 @@ import Debug from './Debug';
 
 const { ipcRenderer } = window.electron;
 
-// const MIN_IN_MILLISECONDS = 60 * 1000;
-// const REFRESH_INTERVAL = 1 * MIN_IN_MILLISECONDS;
-
 const humanizeStatus = (status) => status?.replace('-', ' ');
 
 const LightText = styled.span`
@@ -123,7 +120,6 @@ function Battery() {
           })}
         </Tbody>
       </CustomTable>
-      <Debug />
     </NormalContainer>
   );
 }

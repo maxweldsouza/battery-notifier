@@ -108,10 +108,20 @@ function runBatteryNotification(devices, preferences) {
   setIcon(getBatteryIcon(devices));
 }
 
-ipcMain.on('get-devices', async (event) => {
-  const devices = await getAllDeviceInfo();
+async function batteryTask(devices) {
   const preferences = store.get('battery');
   runBatteryNotification(devices, preferences);
+}
+const TASK_INTERVAL_MS = 10 * 60 * 1000;
+
+setInterval(async () => {
+  const devices = await getAllDeviceInfo();
+  await batteryTask(devices);
+}, TASK_INTERVAL_MS);
+
+ipcMain.on('get-devices', async (event) => {
+  const devices = await getAllDeviceInfo();
+  await batteryTask(devices);
   event.reply('receive-devices', devices);
 });
 
@@ -229,7 +239,7 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('wifi.png'),
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
