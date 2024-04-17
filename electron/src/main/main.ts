@@ -80,18 +80,18 @@ function getBatteryIcon(devices) {
 
 function runDeviceBatteryNotification(device, preferences) {
   if (
-    device.capacity <= 20 &&
+    device.percentage <= 20 &&
     preferences[device['native-path']]?.low !== false &&
-    device.status === 'discharging'
+    device.state === 'discharging'
   ) {
-    showLowBatteryNotification(device.model, device.capacity);
+    showLowBatteryNotification(device.model, device.percentage);
   }
   if (
-    device.capacity >= 80 &&
+    device.percentage >= 80 &&
     preferences[device['native-path']]?.high !== false &&
-    device.status === 'charging'
+    device.state === 'charging'
   ) {
-    showHighBatteryNotification(device.model, device.capacity);
+    showHighBatteryNotification(device.model, device.percentage);
   }
 }
 
