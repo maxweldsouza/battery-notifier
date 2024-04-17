@@ -69,6 +69,14 @@ export async function getAllDeviceInfo() {
   return result;
 }
 
+export function showNotification(options) {
+  const notification = new Notification({
+    sound: '../../assets/message.mp3',
+    ...options,
+  });
+  notification.show();
+}
+
 export function showLowBatteryNotification(device, percent) {
   showNotification({
     title: `Low battery`,
@@ -81,12 +89,4 @@ export function showHighBatteryNotification(device, percent) {
     title: `Stop charging`,
     body: `${device} battery is at ${percent}%`,
   });
-}
-
-function showNotification(options) {
-  const notification = new Notification({
-    sound: '../../assets/message.mp3',
-    ...options,
-  });
-  notification.show();
 }

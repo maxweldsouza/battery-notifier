@@ -22,6 +22,9 @@ import {
   transformDeviceInfo,
 } from './battery';
 import initializeStore from '../shared/electron/store/electronStoreMain';
+import debug from './debug';
+
+debug();
 
 const store = initializeStore();
 
@@ -164,7 +167,6 @@ function watchUpower() {
     }
   });
 }
-
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

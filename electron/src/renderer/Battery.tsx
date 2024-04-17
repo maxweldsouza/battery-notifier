@@ -3,7 +3,6 @@ import { useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
 import styled from 'styled-components';
 import NormalContainer from '../shared/NormalContainer';
-import Table from '../shared/Table';
 import Tr from '../shared/Tr';
 import Th from '../shared/Th';
 import Thead from '../shared/Thead';
@@ -11,6 +10,7 @@ import Tbody from '../shared/Tbody';
 import Status from './Status';
 import useElectronStore from '../shared/electron/store/useElectronStoreState';
 import CustomTable from './CustomTable';
+import Debug from './Debug';
 
 const { ipcRenderer } = window.electron;
 
@@ -123,6 +123,7 @@ function Battery() {
           })}
         </Tbody>
       </CustomTable>
+      <Debug />
     </NormalContainer>
   );
 }

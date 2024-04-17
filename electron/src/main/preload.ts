@@ -3,13 +3,13 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import electronStorePreload from '../shared/electron/store/electronStorePreload';
 
-export type Channels = 'get-devices' | 'receive-devices';
+export type Channels = 'get-devices' | 'receive-devices' | 'test-notification';
 
 const electronHandler = {
   ...electronStorePreload,
   ipcRenderer: {
     removeAllListeners(channel: Channels) {
-      ipcRenderer.removeAllListeners(channel)
+      ipcRenderer.removeAllListeners(channel);
     },
     sendMessage(channel: Channels, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
