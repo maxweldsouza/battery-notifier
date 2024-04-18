@@ -53,7 +53,7 @@ function Battery() {
     });
   };
   const keys = Object.keys(data);
-  if (keys.length === 0 || true) {
+  if (keys.length === 0) {
     return (
       <EmptyState>
         <Battery0Icon height={128} />
