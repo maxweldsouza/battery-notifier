@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useSetState } from 'react-use';
 import { isNumber } from 'lodash-es';
 import styled from 'styled-components';
+import { Battery0Icon } from '@heroicons/react/24/outline';
 import NormalContainer from '../shared/NormalContainer';
 import Tr from '../shared/Tr';
 import Th from '../shared/Th';
@@ -11,6 +12,7 @@ import Status from './Status';
 import useElectronStore from '../shared/electron/store/useElectronStoreState';
 import CustomTable from './CustomTable';
 import Debug from './Debug';
+import EmptyState from '../shared/EmptyState';
 
 const { ipcRenderer } = window.electron;
 
@@ -50,6 +52,15 @@ function Battery() {
       },
     });
   };
+  const keys = Object.keys(data);
+  if (keys.length === 0 || true) {
+    return (
+      <EmptyState>
+        <Battery0Icon height={128} />
+        No devices found
+      </EmptyState>
+    );
+  }
   return (
     <NormalContainer>
       <CustomTable>
@@ -64,7 +75,7 @@ function Battery() {
           </Tr>
         </Thead>
         <Tbody>
-          {Object.keys(data).map((key) => {
+          {keys.map((key) => {
             const row = data[key];
             const id = row['native-path'];
             return (
