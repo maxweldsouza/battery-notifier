@@ -3,7 +3,11 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import electronStorePreload from '../shared/electron/store/electronStorePreload';
 
-export type Channels = 'get-devices' | 'receive-devices' | 'test-notification';
+export type Channels =
+  | 'get-devices'
+  | 'receive-devices'
+  | 'test-notification'
+  | 'main-process-error';
 
 const electronHandler = {
   ...electronStorePreload,

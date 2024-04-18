@@ -120,9 +120,13 @@ setInterval(async () => {
 }, TASK_INTERVAL_MS);
 
 ipcMain.on('get-devices', async (event) => {
-  const devices = await getAllDeviceInfo();
-  await batteryTask(devices);
-  event.reply('receive-devices', devices);
+  try {
+    const devices = await getAllDeviceInfo();
+    await batteryTask(devices);
+    event.reply('receive-devices', devices);
+  } catch (e) {
+    event.reply('main-process-error', e);
+  }
 });
 
 function parseDeviceInfo(deviceBlock) {
@@ -166,7 +170,7 @@ function watchUpower() {
   });
 
   upower.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`);
+    mainWindow?.webContents.send('main-process-error', data);
   });
 
   upower.on('close', (code) => {
