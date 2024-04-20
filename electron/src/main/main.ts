@@ -214,7 +214,7 @@ async function showTrayIcon() {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Settings',
+      label: 'Show',
       click() {
         mainWindow.show();
       },
