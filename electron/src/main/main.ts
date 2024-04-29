@@ -23,6 +23,7 @@ import {
 } from './battery';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
+import startup from './autostart';
 
 debug();
 
@@ -238,6 +239,8 @@ const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
   }
+
+  startup();
 
   mainWindow = new BrowserWindow({
     show: false,
