@@ -30,6 +30,7 @@ function Battery() {
 
   useEffect(() => {
     ipcRenderer.on('device-update', (device) => {
+      console.log('device: ', device);
       setData(device);
     });
   }, [setData]);

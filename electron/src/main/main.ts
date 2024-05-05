@@ -143,13 +143,16 @@ function parseDeviceInfo(deviceBlock) {
     }
   });
 
+  return deviceInfo;
+}
+
+function sendDeviceUpdate(deviceInfo: {}) {
   if (deviceInfo['native-path']) {
     mainWindow?.webContents.send('device-update', {
       [deviceInfo['native-path']]: transformDeviceInfo(deviceInfo),
     });
   }
 }
-
 function watchUpower() {
   const upower = spawn('upower', ['--monitor-detail']);
 
@@ -162,7 +165,8 @@ function watchUpower() {
     lines.forEach((line) => {
       if (line.startsWith('[')) {
         if (deviceBlock) {
-          parseDeviceInfo(deviceBlock); // Parse the accumulated device info
+          const deviceInfo = parseDeviceInfo(deviceBlock);
+          sendDeviceUpdate(deviceInfo);
           deviceBlock = ''; // Reset for the next device block
         }
       }
@@ -178,7 +182,8 @@ function watchUpower() {
     console.log(`child process exited with code ${code}`);
     if (deviceBlock) {
       // Parse any remaining device block
-      parseDeviceInfo(deviceBlock);
+      const deviceInfo = parseDeviceInfo(deviceBlock);
+      sendDeviceUpdate(deviceInfo);
     }
   });
 }

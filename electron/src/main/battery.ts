@@ -61,9 +61,9 @@ export async function getAllDeviceInfo() {
   const devices = await getDevices();
   const result = {};
   for (const device of devices) {
-    const obj = await getDeviceInfo(device);
-    if (obj['native-path']) {
-      result[obj['native-path']] = transformDeviceInfo(obj);
+    const deviceInfo = await getDeviceInfo(device);
+    if (deviceInfo['native-path']) {
+      result[deviceInfo['native-path']] = transformDeviceInfo(deviceInfo);
     }
   }
   return result;
