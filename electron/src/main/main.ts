@@ -24,6 +24,7 @@ import {
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
 import startup from './autostart';
+import { parseMonitorOutput } from './upower';
 
 debug();
 
@@ -130,22 +131,6 @@ ipcMain.on('get-devices', async (event) => {
   }
 });
 
-function parseDeviceInfo(deviceBlock) {
-  const deviceInfo = {};
-  const infoLines = deviceBlock
-    .split('\n')
-    .filter((line) => line.trim() !== '' && !line.startsWith('['));
-
-  infoLines.forEach((line) => {
-    const [key, ...value] = line.split(':');
-    if (key && value.length > 0) {
-      deviceInfo[key.trim()] = value.join(':').trim();
-    }
-  });
-
-  return deviceInfo;
-}
-
 function sendDeviceUpdate(deviceInfo: {}) {
   if (deviceInfo['native-path']) {
     mainWindow?.webContents.send('device-update', {
@@ -156,22 +141,13 @@ function sendDeviceUpdate(deviceInfo: {}) {
 function watchUpower() {
   const upower = spawn('upower', ['--monitor-detail']);
 
-  let deviceBlock = '';
-
   upower.stdout.on('data', (data) => {
     const output = data.toString();
-    const lines = output.split('\n');
-
-    lines.forEach((line) => {
-      if (line.startsWith('[')) {
-        if (deviceBlock) {
-          const deviceInfo = parseDeviceInfo(deviceBlock);
-          sendDeviceUpdate(deviceInfo);
-          deviceBlock = ''; // Reset for the next device block
-        }
-      }
-      deviceBlock += `${line}\n`;
-    });
+    const devices = parseMonitorOutput(output);
+    for (let i = 0; i < devices.length; i += 1) {
+      const device = devices[i];
+      sendDeviceUpdate(device.deviceInfo);
+    }
   });
 
   upower.stderr.on('data', (data) => {
@@ -180,11 +156,6 @@ function watchUpower() {
 
   upower.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
-    if (deviceBlock) {
-      // Parse any remaining device block
-      const deviceInfo = parseDeviceInfo(deviceBlock);
-      sendDeviceUpdate(deviceInfo);
-    }
   });
 }
 

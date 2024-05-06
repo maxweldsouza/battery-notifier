@@ -1,5 +1,5 @@
 import { added } from './__fixtures__/upower';
-import { parseBlock, parseBodyLine, parseHeaderLine } from './upower';
+import { parseMonitorOutput, parseBodyLine, parseHeaderLine } from './upower';
 
 describe('upower monitor', () => {
   test('header line', () => {
@@ -32,7 +32,7 @@ describe('upower monitor', () => {
     });
   });
   test('device removed', () => {
-    const result = parseBlock(added);
+    const result = parseMonitorOutput(added);
     console.log('result: ', result);
   });
 });

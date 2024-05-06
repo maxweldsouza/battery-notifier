@@ -1,3 +1,5 @@
+import { transformDeviceInfo } from './battery';
+
 export function parseHeaderLine(line) {
   const parts = line
     .split(/\s+/)
@@ -20,32 +22,57 @@ export function parseBodyLine(line) {
   };
 }
 
-export function parseBlock(block) {
-  const lines = block
+function splitLines(block) {
+  return block
     .split('\n')
     .map((x) => x.trim())
     .filter((x) => x);
-  let result = { deviceInfo: {} };
+}
+
+export function parseBlock(block) {
+  const deviceInfo = {};
+  const lines = splitLines(block);
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const { key, value } = parseBodyLine(line);
+    if (key && value) {
+      deviceInfo[key] = value;
+    }
+  }
+  return transformDeviceInfo(deviceInfo);
+}
+
+export function parseMonitorOutput(block) {
+  const lines = splitLines(block);
+  let blockLines = [];
   const results = [];
+  let result = { deviceInfo: {} };
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     if (line.startsWith('[')) {
-      const { type, path } = parseHeaderLine(line);
-      if (Object.keys(result.deviceInfo).length > 0) {
-        results.push(result);
+      if (blockLines.length > 0) {
+        const combined = blockLines.join('\n');
+        result.deviceInfo = parseBlock(combined);
+        if (Object.keys(result.deviceInfo).length > 0) {
+          results.push(result);
+        }
       }
+
+      blockLines = [];
+      const { type, path } = parseHeaderLine(line);
       result = {
         type,
         path,
         deviceInfo: {},
       };
     } else {
-      const { key, value } = parseBodyLine(line);
-      if (key && value) {
-        result.deviceInfo[key] = value;
-      }
+      blockLines.push(line);
     }
   }
-  results.push(result);
+  if (blockLines.length > 0) {
+    const combined = blockLines.join('\n');
+    result.deviceInfo = parseBlock(combined);
+    results.push(result);
+  }
   return results;
 }

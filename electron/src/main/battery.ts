@@ -1,45 +1,19 @@
 import { Notification } from 'electron';
 import { exec as execCallback } from 'child_process';
+import { parseBlock } from './upower';
 
 const { promisify } = require('util');
 
 const exec = promisify(execCallback);
 
 async function getDevices() {
-  try {
-    const { stdout } = await exec('upower -e');
-
-    const result = stdout.split('\n').filter((x) => x.trim());
-    return result;
-    // Parse the output for the battery percentage
-  } catch (error) {
-    console.error(`Error getting battery info: ${error}`);
-    throw error; // Rethrow the error if you want the caller to handle it
-  }
-}
-
-function parseOutput(output) {
-  const deviceInfo = {};
-  output
-    .split('\n')
-    .filter((line) => line.trim() !== '')
-    .forEach((line) => {
-      const [key, ...valueParts] = line.split(':');
-      if (key && valueParts.length) {
-        deviceInfo[key.trim()] = valueParts.join(':').trim();
-      }
-    });
-  return deviceInfo;
+  const { stdout } = await exec('upower -e');
+  return stdout.split('\n').filter((x) => x.trim());
 }
 
 async function getDeviceInfo(devicePath) {
-  try {
-    const { stdout } = await exec(`upower -i ${devicePath}`);
-    return parseOutput(stdout.toString());
-  } catch (error) {
-    console.error(`Error getting device info: ${error}`);
-    throw error;
-  }
+  const { stdout } = await exec(`upower -i ${devicePath}`);
+  return parseBlock(stdout.toString());
 }
 
 function extractNumberFromString(str) {
@@ -62,8 +36,9 @@ export async function getAllDeviceInfo() {
   const result = {};
   for (const device of devices) {
     const deviceInfo = await getDeviceInfo(device);
+    console.log('deviceInfo: ', deviceInfo);
     if (deviceInfo['native-path']) {
-      result[deviceInfo['native-path']] = transformDeviceInfo(deviceInfo);
+      result[deviceInfo['native-path']] = deviceInfo;
     }
   }
   return result;
