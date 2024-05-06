@@ -20,11 +20,11 @@ import {
   showHighBatteryNotification,
   showLowBatteryNotification,
   transformDeviceInfo,
-} from './battery';
+  parseMonitorOutput
+} from './upower';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
 import startup from './autostart';
-import { parseMonitorOutput } from './upower';
 
 debug();
 

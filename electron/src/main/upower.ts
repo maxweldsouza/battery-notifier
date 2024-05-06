@@ -1,4 +1,9 @@
-import { transformDeviceInfo } from './battery';
+import { Notification } from 'electron';
+import { exec as execCallback } from 'child_process';
+
+const { promisify } = require('util');
+
+const exec = promisify(execCallback);
 
 export function parseHeaderLine(line) {
   const parts = line
@@ -22,16 +27,15 @@ export function parseBodyLine(line) {
   };
 }
 
-function splitLines(block) {
+export function splitLines(block) {
   return block
     .split('\n')
     .map((x) => x.trim())
     .filter((x) => x);
 }
 
-export function parseBlock(block) {
+export function parseBlock(lines) {
   const deviceInfo = {};
-  const lines = splitLines(block);
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const { key, value } = parseBodyLine(line);
@@ -51,8 +55,7 @@ export function parseMonitorOutput(block) {
     const line = lines[i];
     if (line.startsWith('[')) {
       if (blockLines.length > 0) {
-        const combined = blockLines.join('\n');
-        result.deviceInfo = parseBlock(combined);
+        result.deviceInfo = parseBlock(blockLines);
         if (Object.keys(result.deviceInfo).length > 0) {
           results.push(result);
         }
@@ -70,9 +73,67 @@ export function parseMonitorOutput(block) {
     }
   }
   if (blockLines.length > 0) {
-    const combined = blockLines.join('\n');
-    result.deviceInfo = parseBlock(combined);
+    result.deviceInfo = parseBlock(blockLines);
     results.push(result);
   }
   return results;
+}
+
+async function getDevices() {
+  const { stdout } = await exec('upower -e');
+  return stdout.split('\n').filter((x) => x.trim());
+}
+
+async function getDeviceInfo(devicePath) {
+  const { stdout } = await exec(`upower -i ${devicePath}`);
+  return parseBlock(splitLines(stdout.toString()));
+}
+
+function extractNumberFromString(str) {
+  const match = str.match(/\d+/); // This regex matches one or more digits
+  if (match) {
+    return parseInt(match[0], 10); // Convert the matched string to an integer
+  }
+  return null; // Return null if no number is found
+}
+
+export function transformDeviceInfo(deviceInfo) {
+  if (deviceInfo.percentage) {
+    deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage);
+  }
+  return deviceInfo;
+}
+
+export async function getAllDeviceInfo() {
+  const devices = await getDevices();
+  const result = {};
+  for (const device of devices) {
+    const deviceInfo = await getDeviceInfo(device);
+    if (deviceInfo['native-path']) {
+      result[deviceInfo['native-path']] = deviceInfo;
+    }
+  }
+  return result;
+}
+
+export function showNotification(options) {
+  const notification = new Notification({
+    sound: '../../assets/message.mp3',
+    ...options,
+  });
+  notification.show();
+}
+
+export function showLowBatteryNotification(device, percent) {
+  showNotification({
+    title: `Low battery`,
+    body: `${device} battery is at ${percent}%`,
+  });
+}
+
+export function showHighBatteryNotification(device, percent) {
+  showNotification({
+    title: `Stop charging`,
+    body: `${device} battery is at ${percent}%`,
+  });
 }

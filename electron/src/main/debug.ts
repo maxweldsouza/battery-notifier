@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { showNotification } from './battery';
+import { showNotification } from './upower';
 
 export default function () {
   ipcMain.on('test-notification', async () => {
