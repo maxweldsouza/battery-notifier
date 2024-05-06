@@ -11,6 +11,7 @@ async function copyFileWithDirectories(source, destination) {
 export default async function () {
   try {
     const sourcePath = process.env.SNAP;
+    if (!sourcePath) return;
     const sourceFilePath = path.join(
       sourcePath,
       'snap',
@@ -19,6 +20,7 @@ export default async function () {
     );
 
     const destinationPath = process.env.SNAP_USER_DATA;
+    if (!destinationPath) return;
     const destinationFilePath = path.join(
       destinationPath,
       '.config',

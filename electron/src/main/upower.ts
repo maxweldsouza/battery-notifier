@@ -34,61 +34,6 @@ export function splitLines(block) {
     .filter((x) => x);
 }
 
-export function parseBlock(lines) {
-  const deviceInfo = {};
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    const { key, value } = parseBodyLine(line);
-    if (key && value) {
-      deviceInfo[key] = value;
-    }
-  }
-  return transformDeviceInfo(deviceInfo);
-}
-
-export function parseMonitorOutput(block) {
-  const lines = splitLines(block);
-  let blockLines = [];
-  const results = [];
-  let result = { deviceInfo: {} };
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (line.startsWith('[')) {
-      if (blockLines.length > 0) {
-        result.deviceInfo = parseBlock(blockLines);
-        if (Object.keys(result.deviceInfo).length > 0) {
-          results.push(result);
-        }
-      }
-
-      blockLines = [];
-      const { type, path } = parseHeaderLine(line);
-      result = {
-        type,
-        path,
-        deviceInfo: {},
-      };
-    } else {
-      blockLines.push(line);
-    }
-  }
-  if (blockLines.length > 0) {
-    result.deviceInfo = parseBlock(blockLines);
-    results.push(result);
-  }
-  return results;
-}
-
-async function getDevices() {
-  const { stdout } = await exec('upower -e');
-  return stdout.split('\n').filter((x) => x.trim());
-}
-
-async function getDeviceInfo(devicePath) {
-  const { stdout } = await exec(`upower -i ${devicePath}`);
-  return parseBlock(splitLines(stdout.toString()));
-}
-
 function extractNumberFromString(str) {
   const match = str.match(/\d+/); // This regex matches one or more digits
   if (match) {
@@ -102,6 +47,69 @@ export function transformDeviceInfo(deviceInfo) {
     deviceInfo.percentage = extractNumberFromString(deviceInfo.percentage);
   }
   return deviceInfo;
+}
+
+export function parseBlock(lines) {
+  const deviceInfo = {};
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const { key, value } = parseBodyLine(line);
+    if (key && value) {
+      deviceInfo[key] = value;
+    }
+  }
+  return transformDeviceInfo(deviceInfo);
+}
+
+function splitLinesIntoBlocks(lines) {
+  let blockLines = [];
+  const results = [];
+  let blockStarted = false;
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (line.startsWith('[')) {
+      blockStarted = true;
+      if (blockLines.length > 0) {
+        results.push(blockLines);
+        blockLines = [];
+      }
+    }
+    if (blockStarted) {
+      blockLines.push(line);
+    }
+  }
+  if (blockLines.length > 0) {
+    results.push(blockLines);
+  }
+  return results;
+}
+
+export function parseMonitorOutput(output) {
+  const lines = splitLines(output);
+  const blocks = splitLinesIntoBlocks(lines);
+  const results = [];
+  for (let i = 0; i < blocks.length; i += 1) {
+    const [header, ...body] = blocks[i];
+    const { type, path } = parseHeaderLine(header);
+    const deviceInfo = parseBlock(body);
+    const result = {
+      type,
+      path,
+      deviceInfo,
+    };
+    results.push(result);
+  }
+  return results;
+}
+
+async function getDevices() {
+  const { stdout } = await exec('upower -e');
+  return stdout.split('\n').filter((x) => x.trim());
+}
+
+async function getDeviceInfo(devicePath) {
+  const { stdout } = await exec(`upower -i ${devicePath}`);
+  return parseBlock(splitLines(stdout.toString()));
 }
 
 export async function getAllDeviceInfo() {

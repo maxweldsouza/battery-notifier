@@ -20,7 +20,7 @@ import {
   showHighBatteryNotification,
   showLowBatteryNotification,
   transformDeviceInfo,
-  parseMonitorOutput
+  parseMonitorOutput,
 } from './upower';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
@@ -134,7 +134,7 @@ ipcMain.on('get-devices', async (event) => {
 function sendDeviceUpdate(deviceInfo: {}) {
   if (deviceInfo['native-path']) {
     mainWindow?.webContents.send('device-update', {
-      [deviceInfo['native-path']]: transformDeviceInfo(deviceInfo),
+      [deviceInfo['native-path']]: deviceInfo,
     });
   }
 }
