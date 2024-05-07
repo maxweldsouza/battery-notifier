@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSetState } from 'react-use';
-import { isNumber } from 'lodash-es';
+import { isNumber, pickBy, cloneDeep } from 'lodash-es';
 import styled from 'styled-components';
 import { Battery0Icon } from '@heroicons/react/24/outline';
 import NormalContainer from '../shared/NormalContainer';
@@ -25,26 +25,38 @@ const LightText = styled.span`
 function Battery() {
   const [data, setData] = useSetState({});
   const [preferences, setPreferences] = useElectronStore('battery', {});
+  console.log('data: ', data);
 
   // const isMounted = useMountedState();
 
   useEffect(() => {
     ipcRenderer.on('device-update', (device) => {
-      console.log('device: ', device);
+      console.log('update: ', device);
       setData(device);
     });
   }, [setData]);
 
   useEffect(() => {
-    ipcRenderer.on('receive-devices', (devices) => {
-      setData(devices);
+    ipcRenderer.on('device-removed', (path) => {
+      console.log('removed: ', path);
+      setData((x) => {
+        const result = pickBy(x, (deviceInfo) => deviceInfo.path !== path);
+        console.log('result: ', result);
+        return cloneDeep(result);
+      });
     });
-    ipcRenderer.sendMessage('get-devices');
-    // Clean the listener after the component is dismounted
-    return () => {
-      ipcRenderer.removeAllListeners('receive-devices');
-    };
   }, [setData]);
+
+  // useEffect(() => {
+  //   ipcRenderer.on('receive-devices', (devices) => {
+  //     setData(devices);
+  //   });
+  //   ipcRenderer.sendMessage('get-devices');
+  //   // Clean the listener after the component is dismounted
+  //   return () => {
+  //     ipcRenderer.removeAllListeners('receive-devices');
+  //   };
+  // }, [setData]);
 
   const saveState = (id, key, value) => {
     setPreferences({

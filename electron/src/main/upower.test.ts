@@ -42,8 +42,8 @@ describe('upower monitor', () => {
     expect(result).toMatchObject([
       {
         type: 'changed',
-        path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
         deviceInfo: {
+          path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
           'native-path': 'hid-bc:d0:74:bb:f8:c4-battery',
           model: 'Magic Trackpad',
           'power supply': 'no',
@@ -60,13 +60,14 @@ describe('upower monitor', () => {
       },
       {
         type: 'removed',
-        path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
-        deviceInfo: {},
+        deviceInfo: {
+          path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
+        },
       },
       {
         type: 'added',
-        path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
         deviceInfo: {
+          path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
           'native-path': 'hid-bc:d0:74:bb:f8:c4-battery',
           model: 'Magic Trackpad',
           'power supply': 'no',
@@ -90,6 +91,7 @@ describe('upower monitor', () => {
         type: 'added',
         path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
         deviceInfo: {
+          path: '/org/freedesktop/UPower/devices/touchpad_hid_bcod0o74obbof8oc4_battery',
           'native-path': 'hid-bc:d0:74:bb:f8:c4-battery',
           model: 'Magic Trackpad',
           'power supply': 'no',
@@ -109,9 +111,10 @@ describe('upower monitor', () => {
 });
 describe('upower single device', () => {
   test('parse single device output', () => {
-    const result = parseBlock(splitLines(trackpadOutput));
+    const result = parseBlock(splitLines(trackpadOutput), '/test/path');
     expect(result).toMatchObject({
       'native-path': 'hid-bc:d0:74:bb:f8:c4-battery',
+      path: '/test/path',
       model: 'Magic Trackpad',
       'power supply': 'no',
       updated: 'Monday 06 May 2024 02:38:28 PM (30 seconds ago)',

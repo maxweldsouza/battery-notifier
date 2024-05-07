@@ -6,6 +6,8 @@ import electronStorePreload from '../shared/electron/store/electronStorePreload'
 export type Channels =
   | 'get-devices'
   | 'receive-devices'
+  | 'device-update'
+  | 'device-removed'
   | 'test-notification'
   | 'main-process-error';
 

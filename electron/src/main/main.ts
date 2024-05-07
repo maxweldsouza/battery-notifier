@@ -132,21 +132,37 @@ ipcMain.on('get-devices', async (event) => {
 });
 
 function sendDeviceUpdate(deviceInfo: {}) {
-  if (deviceInfo['native-path']) {
-    mainWindow?.webContents.send('device-update', {
-      [deviceInfo['native-path']]: deviceInfo,
-    });
-  }
+  // if (deviceInfo['native-path']) {
+  mainWindow?.webContents.send('device-update', {
+    [deviceInfo['native-path']]: deviceInfo,
+  });
+  // }
 }
+
+function sendDeviceRemoved(x) {
+  mainWindow?.webContents.send('device-removed', x);
+}
+
 function watchUpower() {
   const upower = spawn('upower', ['--monitor-detail']);
 
+  let accumulate = '';
   upower.stdout.on('data', (data) => {
     const output = data.toString();
-    const devices = parseMonitorOutput(output);
-    for (let i = 0; i < devices.length; i += 1) {
-      const device = devices[i];
-      sendDeviceUpdate(device.deviceInfo);
+    try {
+      const devices = parseMonitorOutput(output);
+      accumulate = '';
+      for (let i = 0; i < devices.length; i += 1) {
+        const device = devices[i];
+        console.log('device: ', device);
+        if (device.type === 'removed') {
+          sendDeviceRemoved(device.deviceInfo.path);
+        } else {
+          sendDeviceUpdate(device.deviceInfo);
+        }
+      }
+    } catch (e) {
+      accumulate += output;
     }
   });
 

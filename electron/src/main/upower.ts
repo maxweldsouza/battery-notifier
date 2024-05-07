@@ -49,8 +49,8 @@ export function transformDeviceInfo(deviceInfo) {
   return deviceInfo;
 }
 
-export function parseBlock(lines) {
-  const deviceInfo = {};
+export function parseBlock(lines, path) {
+  const deviceInfo = { path };
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const { key, value } = parseBodyLine(line);
@@ -91,7 +91,7 @@ export function parseMonitorOutput(output) {
   for (let i = 0; i < blocks.length; i += 1) {
     const [header, ...body] = blocks[i];
     const { type, path } = parseHeaderLine(header);
-    const deviceInfo = parseBlock(body);
+    const deviceInfo = parseBlock(body, path);
     const result = {
       type,
       path,
@@ -109,7 +109,7 @@ async function getDevices() {
 
 async function getDeviceInfo(devicePath) {
   const { stdout } = await exec(`upower -i ${devicePath}`);
-  return parseBlock(splitLines(stdout.toString()));
+  return parseBlock(splitLines(stdout.toString()), devicePath);
 }
 
 export async function getAllDeviceInfo() {
