@@ -11,7 +11,7 @@ export function parseHeaderLine(line) {
     .filter((x) => x)
     .map((x) => x.trim());
   return {
-    path: parts[3],
+    fullPath: parts[3],
     type: parts[2].replace(':', ''),
   };
 }
@@ -61,62 +61,21 @@ export function parseBlock(lines, path) {
   return transformDeviceInfo(deviceInfo);
 }
 
-function splitLinesIntoBlocks(lines) {
-  let blockLines = [];
-  const results = [];
-  let blockStarted = false;
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (line.startsWith('[')) {
-      blockStarted = true;
-      if (blockLines.length > 0) {
-        results.push(blockLines);
-        blockLines = [];
-      }
-    }
-    if (blockStarted) {
-      blockLines.push(line);
-    }
-  }
-  if (blockLines.length > 0) {
-    results.push(blockLines);
-  }
-  return results;
-}
-
-export function parseMonitorOutput(output) {
-  const lines = splitLines(output);
-  const blocks = splitLinesIntoBlocks(lines);
-  const results = [];
-  for (let i = 0; i < blocks.length; i += 1) {
-    const [header, ...body] = blocks[i];
-    const { type, path } = parseHeaderLine(header);
-    const deviceInfo = parseBlock(body, path);
-    const result = {
-      type,
-      path,
-      deviceInfo,
-    };
-    results.push(result);
-  }
-  return results;
-}
-
 async function getDevices() {
   const { stdout } = await exec('upower -e');
   return stdout.split('\n').filter((x) => x.trim());
 }
 
-async function getDeviceInfo(devicePath) {
+export async function getDeviceInfo(devicePath) {
   const { stdout } = await exec(`upower -i ${devicePath}`);
   return parseBlock(splitLines(stdout.toString()), devicePath);
 }
 
 export async function getAllDeviceInfo() {
-  const devices = await getDevices();
+  const paths = await getDevices();
   const result = {};
-  for (const device of devices) {
-    const deviceInfo = await getDeviceInfo(device);
+  for (const devicePath of paths) {
+    const deviceInfo = await getDeviceInfo(devicePath);
     if (deviceInfo['native-path']) {
       result[deviceInfo['native-path']] = deviceInfo;
     }

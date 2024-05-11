@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useSetState } from 'react-use';
+import React, { useEffect, useState } from 'react';
 import { isNumber, pickBy, cloneDeep } from 'lodash-es';
 import styled from 'styled-components';
 import { Battery0Icon } from '@heroicons/react/24/outline';
@@ -23,40 +22,48 @@ const LightText = styled.span`
 `;
 
 function Battery() {
-  const [data, setData] = useSetState({});
+  const [data, setData] = useState({});
   const [preferences, setPreferences] = useElectronStore('battery', {});
   console.log('data: ', data);
 
   // const isMounted = useMountedState();
 
   useEffect(() => {
-    ipcRenderer.on('device-update', (device) => {
+    const listener = (device) => {
       console.log('update: ', device);
-      setData(device);
-    });
-  }, [setData]);
+      setData((x) => {
+        const result = {
+          ...x,
+          ...device,
+        };
+        console.log('result: ', result);
+        return result;
+      });
+    };
+    const cleanup = ipcRenderer.on('device-update', listener);
+    return cleanup;
+  }, []);
 
   useEffect(() => {
-    ipcRenderer.on('device-removed', (path) => {
-      console.log('removed: ', path);
+    const listener = (path) => {
       setData((x) => {
         const result = pickBy(x, (deviceInfo) => deviceInfo.path !== path);
-        console.log('result: ', result);
-        return cloneDeep(result);
+        console.log('removed: ', result);
+        return result;
       });
-    });
-  }, [setData]);
+    };
+    const cleanup = ipcRenderer.on('device-removed', listener);
+    return cleanup;
+  }, []);
 
-  // useEffect(() => {
-  //   ipcRenderer.on('receive-devices', (devices) => {
-  //     setData(devices);
-  //   });
-  //   ipcRenderer.sendMessage('get-devices');
-  //   // Clean the listener after the component is dismounted
-  //   return () => {
-  //     ipcRenderer.removeAllListeners('receive-devices');
-  //   };
-  // }, [setData]);
+  useEffect(() => {
+    const listener = (devices) => {
+      setData(devices);
+    };
+    const cleanup = ipcRenderer.on('receive-devices', listener);
+    ipcRenderer.sendMessage('get-devices');
+    return cleanup;
+  }, [setData]);
 
   const saveState = (id, key, value) => {
     setPreferences({
@@ -92,7 +99,7 @@ function Battery() {
             const row = data[key];
             const id = row['native-path'];
             return (
-              <Tr key={id}>
+              <Tr key={key}>
                 <Th>{row.model}</Th>
                 <Th>
                   <progress max="100" value={row.percentage}>

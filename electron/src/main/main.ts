@@ -19,8 +19,9 @@ import {
   getAllDeviceInfo,
   showHighBatteryNotification,
   showLowBatteryNotification,
-  transformDeviceInfo,
-  parseMonitorOutput,
+  splitLines,
+  parseHeaderLine,
+  getDeviceInfo,
 } from './upower';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
@@ -132,11 +133,11 @@ ipcMain.on('get-devices', async (event) => {
 });
 
 function sendDeviceUpdate(deviceInfo: {}) {
-  // if (deviceInfo['native-path']) {
-  mainWindow?.webContents.send('device-update', {
-    [deviceInfo['native-path']]: deviceInfo,
-  });
-  // }
+  if (deviceInfo['native-path'] !== '(null)') {
+    mainWindow?.webContents.send('device-update', {
+      [deviceInfo['native-path']]: deviceInfo,
+    });
+  }
 }
 
 function sendDeviceRemoved(x) {
@@ -144,25 +145,20 @@ function sendDeviceRemoved(x) {
 }
 
 function watchUpower() {
-  const upower = spawn('upower', ['--monitor-detail']);
+  const upower = spawn('upower', ['--monitor']);
 
-  let accumulate = '';
   upower.stdout.on('data', (data) => {
     const output = data.toString();
-    try {
-      const devices = parseMonitorOutput(output);
-      accumulate = '';
-      for (let i = 0; i < devices.length; i += 1) {
-        const device = devices[i];
-        console.log('device: ', device);
-        if (device.type === 'removed') {
-          sendDeviceRemoved(device.deviceInfo.path);
-        } else {
-          sendDeviceUpdate(device.deviceInfo);
-        }
+    const lines = splitLines(output);
+    for (let i = 0; i < lines.length; i += 1) {
+      const { type, fullPath } = parseHeaderLine(lines[i]);
+      if (type === 'removed') {
+        sendDeviceRemoved(fullPath);
+      } else {
+        getDeviceInfo(fullPath)
+          .then((deviceInfo) => sendDeviceUpdate(deviceInfo))
+          .catch((e) => console.error(e));
       }
-    } catch (e) {
-      accumulate += output;
     }
   });
 
