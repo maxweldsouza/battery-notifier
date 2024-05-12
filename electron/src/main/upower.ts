@@ -76,8 +76,8 @@ export async function getAllDeviceInfo() {
   const result = {};
   for (const devicePath of paths) {
     const deviceInfo = await getDeviceInfo(devicePath);
-    if (deviceInfo['native-path']) {
-      result[deviceInfo['native-path']] = deviceInfo;
+    if (deviceInfo.model) {
+      result[devicePath] = deviceInfo;
     }
   }
   return result;

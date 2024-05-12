@@ -115,7 +115,7 @@ async function batteryTask(devices) {
   const preferences = store.get('battery');
   runBatteryNotification(devices, preferences);
 }
-const TASK_INTERVAL_MS = 10 * 60 * 1000;
+const TASK_INTERVAL_MS = 60 * 1000;
 
 setInterval(async () => {
   const devices = await getAllDeviceInfo();
@@ -132,16 +132,18 @@ ipcMain.on('get-devices', async (event) => {
   }
 });
 
-function sendDeviceUpdate(deviceInfo: {}) {
-  if (deviceInfo['native-path'] !== '(null)') {
-    mainWindow?.webContents.send('device-update', {
-      [deviceInfo['native-path']]: deviceInfo,
-    });
-  }
+function sendDeviceRemoved(fullPath) {
+  mainWindow?.webContents.send('device-removed', fullPath);
 }
 
-function sendDeviceRemoved(x) {
-  mainWindow?.webContents.send('device-removed', x);
+function sendDeviceUpdate(deviceInfo: {}, fullPath) {
+  if (deviceInfo['native-path'] === '(null)') {
+    sendDeviceRemoved(fullPath);
+  } else {
+    mainWindow?.webContents.send('device-update', {
+      [fullPath]: deviceInfo,
+    });
+  }
 }
 
 function watchUpower() {
@@ -156,7 +158,7 @@ function watchUpower() {
         sendDeviceRemoved(fullPath);
       } else {
         getDeviceInfo(fullPath)
-          .then((deviceInfo) => sendDeviceUpdate(deviceInfo))
+          .then((deviceInfo) => sendDeviceUpdate(deviceInfo, fullPath))
           .catch((e) => console.error(e));
       }
     }
