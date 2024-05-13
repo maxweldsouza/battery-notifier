@@ -22,6 +22,7 @@ import {
   splitLines,
   parseHeaderLine,
   getDeviceInfo,
+  getDevices,
 } from './upower';
 import initializeStore from '../shared/electron/store/electronStoreMain';
 import debug from './debug';
@@ -115,28 +116,28 @@ async function batteryTask(devices) {
   const preferences = store.get('battery');
   runBatteryNotification(devices, preferences);
 }
-const TASK_INTERVAL_MS = 60 * 1000;
 
-setInterval(async () => {
-  const devices = await getAllDeviceInfo();
-  await batteryTask(devices);
-}, TASK_INTERVAL_MS);
+const TASK_INTERVAL_MS = 1000;
 
-ipcMain.on('get-devices', async (event) => {
-  try {
-    const devices = await getAllDeviceInfo();
-    await batteryTask(devices);
-    event.reply('receive-devices', devices);
-  } catch (e) {
-    event.reply('main-process-error', e);
-  }
-});
+// ipcMain.on('get-devices', async (event) => {
+//   try {
+//     const devices = await getAllDeviceInfo();
+//     await batteryTask(devices);
+//
+//     console.log('devices: ', devices);
+//     // event.reply('receive-devices', devices);
+//   } catch (e) {
+//     event.reply('main-process-error', e);
+//   }
+// });
 
 function sendDeviceRemoved(fullPath) {
   mainWindow?.webContents.send('device-removed', fullPath);
 }
 
 function sendDeviceUpdate(deviceInfo: {}, fullPath) {
+  if (!deviceInfo.model) return;
+
   if (deviceInfo['native-path'] === '(null)') {
     sendDeviceRemoved(fullPath);
   } else {
@@ -146,21 +147,36 @@ function sendDeviceUpdate(deviceInfo: {}, fullPath) {
   }
 }
 
+async function processDevice(fullPath) {
+  return getDeviceInfo(fullPath)
+    .then((deviceInfo) => sendDeviceUpdate(deviceInfo, fullPath))
+    .catch((e) => console.error(e));
+}
+
+setInterval(async () => {
+  const devicePaths = await getDevices();
+  const promises = devicePaths.map(getDeviceInfo);
+  let devices = await Promise.all(promises);
+
+  devices = devices.filter((x) => x.model);
+  mainWindow?.webContents.send('receive-devices', devices);
+  await batteryTask(devices);
+}, TASK_INTERVAL_MS);
+
 function watchUpower() {
   const upower = spawn('upower', ['--monitor']);
 
-  upower.stdout.on('data', (data) => {
+  upower.stdout.on('data', async (data) => {
     const output = data.toString();
     const lines = splitLines(output);
+    const devicePaths = lines.map(parseHeaderLine);
+    const promises = devicePaths.map(getDeviceInfo);
+    const devices = await Promise.all(promises);
+
     for (let i = 0; i < lines.length; i += 1) {
-      const { type, fullPath } = parseHeaderLine(lines[i]);
-      if (type === 'removed') {
-        sendDeviceRemoved(fullPath);
-      } else {
-        getDeviceInfo(fullPath)
-          .then((deviceInfo) => sendDeviceUpdate(deviceInfo, fullPath))
-          .catch((e) => console.error(e));
-      }
+      const fullPath = devicePaths[i];
+      const deviceInfo = devices[i];
+      sendDeviceUpdate(deviceInfo, fullPath);
     }
   });
 

@@ -61,7 +61,7 @@ export function parseBlock(lines, path) {
   return transformDeviceInfo(deviceInfo);
 }
 
-async function getDevices() {
+export async function getDevices() {
   const { stdout } = await exec('upower -e');
   return stdout.split('\n').filter((x) => x.trim());
 }

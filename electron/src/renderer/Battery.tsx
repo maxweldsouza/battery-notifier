@@ -22,39 +22,34 @@ const LightText = styled.span`
 `;
 
 function Battery() {
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
   const [preferences, setPreferences] = useElectronStore('battery', {});
-  console.log('data: ', data);
 
   // const isMounted = useMountedState();
 
-  useEffect(() => {
-    const listener = (device) => {
-      console.log('update: ', device);
-      setData((x) => {
-        const result = {
-          ...x,
-          ...device,
-        };
-        console.log('result: ', result);
-        return result;
-      });
-    };
-    const cleanup = ipcRenderer.on('device-update', listener);
-    return cleanup;
-  }, []);
-
-  useEffect(() => {
-    const listener = (path) => {
-      setData((x) => {
-        const result = pickBy(x, (deviceInfo) => deviceInfo.path !== path);
-        console.log('removed: ', result);
-        return result;
-      });
-    };
-    const cleanup = ipcRenderer.on('device-removed', listener);
-    return cleanup;
-  }, []);
+  // useEffect(() => {
+  //   const listener = (device) => {
+  //     setData((x) => {
+  //       const result = {
+  //         ...x,
+  //         ...device,
+  //       };
+  //       return result;
+  //     });
+  //   };
+  //   const cleanup = ipcRenderer.on('device-update', listener);
+  //   return cleanup;
+  // }, []);
+  //
+  // useEffect(() => {
+  //   const listener = (path) => {
+  //     setData((x) => {
+  //       return pickBy(x, (deviceInfo) => deviceInfo.path !== path);
+  //     });
+  //   };
+  //   const cleanup = ipcRenderer.on('device-removed', listener);
+  //   return cleanup;
+  // }, []);
 
   useEffect(() => {
     const listener = (devices) => {
@@ -63,7 +58,7 @@ function Battery() {
     const cleanup = ipcRenderer.on('receive-devices', listener);
     ipcRenderer.sendMessage('get-devices');
     return cleanup;
-  }, [setData]);
+  }, []);
 
   const saveState = (id, key, value) => {
     setPreferences({
@@ -95,11 +90,11 @@ function Battery() {
           </Tr>
         </Thead>
         <Tbody>
-          {keys.map((key) => {
-            const row = data[key];
+          {data.map((row) => {
+            // const row = data[key];
             const id = row['native-path'];
             return (
-              <Tr key={key}>
+              <Tr key={id}>
                 <Th>{row.model}</Th>
                 <Th>
                   <progress max="100" value={row.percentage}>
