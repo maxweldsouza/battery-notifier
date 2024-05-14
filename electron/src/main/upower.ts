@@ -71,18 +71,6 @@ export async function getDeviceInfo(devicePath) {
   return parseBlock(splitLines(stdout.toString()), devicePath);
 }
 
-export async function getAllDeviceInfo() {
-  const paths = await getDevices();
-  const result = {};
-  for (const devicePath of paths) {
-    const deviceInfo = await getDeviceInfo(devicePath);
-    if (deviceInfo.model) {
-      result[devicePath] = deviceInfo;
-    }
-  }
-  return result;
-}
-
 export function showNotification(options) {
   const notification = new Notification({
     sound: '../../assets/message.mp3',

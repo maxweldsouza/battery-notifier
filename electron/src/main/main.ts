@@ -9,18 +9,14 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from 'electron';
+import { app, BrowserWindow, Menu, shell, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import { spawn } from 'child_process';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
-  getAllDeviceInfo,
   showHighBatteryNotification,
   showLowBatteryNotification,
-  splitLines,
-  parseHeaderLine,
   getDeviceInfo,
   getDevices,
 } from './upower';
@@ -102,10 +98,8 @@ function runDeviceBatteryNotification(device, preferences) {
 function runBatteryNotification(devices, preferences) {
   if (devices.length <= 0) return;
 
-  const keys = Object.keys(devices);
-  for (let i = 0; i < keys.length; i += 1) {
-    const key = keys[i];
-    const device = devices[key];
+  for (let i = 0; i < devices.length; i += 1) {
+    const device = devices[i];
     runDeviceBatteryNotification(device, preferences);
   }
 
@@ -119,75 +113,20 @@ async function batteryTask(devices) {
 
 const TASK_INTERVAL_MS = 1000;
 
-// ipcMain.on('get-devices', async (event) => {
-//   try {
-//     const devices = await getAllDeviceInfo();
-//     await batteryTask(devices);
-//
-//     console.log('devices: ', devices);
-//     // event.reply('receive-devices', devices);
-//   } catch (e) {
-//     event.reply('main-process-error', e);
-//   }
-// });
-
-function sendDeviceRemoved(fullPath) {
-  mainWindow?.webContents.send('device-removed', fullPath);
-}
-
-function sendDeviceUpdate(deviceInfo: {}, fullPath) {
-  if (!deviceInfo.model) return;
-
-  if (deviceInfo['native-path'] === '(null)') {
-    sendDeviceRemoved(fullPath);
-  } else {
-    mainWindow?.webContents.send('device-update', {
-      [fullPath]: deviceInfo,
-    });
-  }
-}
-
-async function processDevice(fullPath) {
-  return getDeviceInfo(fullPath)
-    .then((deviceInfo) => sendDeviceUpdate(deviceInfo, fullPath))
-    .catch((e) => console.error(e));
-}
-
-setInterval(async () => {
+async function getAllDevices() {
   const devicePaths = await getDevices();
   const promises = devicePaths.map(getDeviceInfo);
   let devices = await Promise.all(promises);
 
   devices = devices.filter((x) => x.model);
+  return devices;
+}
+
+setInterval(async () => {
+  const devices = await getAllDevices();
   mainWindow?.webContents.send('receive-devices', devices);
   await batteryTask(devices);
 }, TASK_INTERVAL_MS);
-
-function watchUpower() {
-  const upower = spawn('upower', ['--monitor']);
-
-  upower.stdout.on('data', async (data) => {
-    const output = data.toString();
-    const lines = splitLines(output);
-    const devicePaths = lines.map(parseHeaderLine);
-    const promises = devicePaths.map(getDeviceInfo);
-    const devices = await Promise.all(promises);
-
-    for (let i = 0; i < lines.length; i += 1) {
-      const fullPath = devicePaths[i];
-      const deviceInfo = devices[i];
-      sendDeviceUpdate(deviceInfo, fullPath);
-    }
-  });
-
-  upower.stderr.on('data', (data) => {
-    mainWindow?.webContents.send('main-process-error', data);
-  });
-
-  upower.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -215,7 +154,7 @@ const installExtensions = async () => {
 };
 
 async function showTrayIcon() {
-  const devices = await getAllDeviceInfo();
+  const devices = await getAllDevices();
   const icon = getBatteryIcon(devices);
   tray = new Tray(icon); // Path to your tray icon
 
@@ -291,7 +230,7 @@ const createWindow = async () => {
   mainWindow.on('close', (event) => {
     if (!app.isQuiting) {
       event.preventDefault();
-      mainWindow.hide(); // Hide the window instead of closing it
+      mainWindow.minimize(); // Hide the window instead of closing it
     }
     return false;
   });
@@ -317,7 +256,6 @@ app
   .whenReady()
   .then(() => {
     createWindow();
-    watchUpower();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

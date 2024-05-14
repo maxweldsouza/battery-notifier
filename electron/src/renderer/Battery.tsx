@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { isNumber, pickBy, cloneDeep } from 'lodash-es';
+import { isNumber } from 'lodash-es';
 import styled from 'styled-components';
 import { Battery0Icon } from '@heroicons/react/24/outline';
 import NormalContainer from '../shared/NormalContainer';
@@ -23,37 +23,13 @@ const LightText = styled.span`
 
 function Battery() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useElectronStore('battery', {});
-
-  // const isMounted = useMountedState();
-
-  // useEffect(() => {
-  //   const listener = (device) => {
-  //     setData((x) => {
-  //       const result = {
-  //         ...x,
-  //         ...device,
-  //       };
-  //       return result;
-  //     });
-  //   };
-  //   const cleanup = ipcRenderer.on('device-update', listener);
-  //   return cleanup;
-  // }, []);
-  //
-  // useEffect(() => {
-  //   const listener = (path) => {
-  //     setData((x) => {
-  //       return pickBy(x, (deviceInfo) => deviceInfo.path !== path);
-  //     });
-  //   };
-  //   const cleanup = ipcRenderer.on('device-removed', listener);
-  //   return cleanup;
-  // }, []);
 
   useEffect(() => {
     const listener = (devices) => {
       setData(devices);
+      setLoading(false);
     };
     const cleanup = ipcRenderer.on('receive-devices', listener);
     ipcRenderer.sendMessage('get-devices');
@@ -67,8 +43,8 @@ function Battery() {
       },
     });
   };
-  const keys = Object.keys(data);
-  if (keys.length === 0) {
+  if (loading) return null;
+  if (data.length === 0) {
     return (
       <EmptyState>
         <Battery0Icon height={128} />
@@ -91,7 +67,6 @@ function Battery() {
         </Thead>
         <Tbody>
           {data.map((row) => {
-            // const row = data[key];
             const id = row['native-path'];
             return (
               <Tr key={id}>
