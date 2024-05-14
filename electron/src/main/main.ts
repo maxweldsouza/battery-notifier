@@ -102,8 +102,6 @@ function runBatteryNotification(devices, preferences) {
     const device = devices[i];
     runDeviceBatteryNotification(device, preferences);
   }
-
-  setIcon(getBatteryIcon(devices));
 }
 
 async function batteryTask(devices) {
@@ -135,6 +133,7 @@ async function task() {
   if (shouldGetDevices) {
     const devices = await getAllDevices();
     mainWindow?.webContents.send('receive-devices', devices);
+    setIcon(getBatteryIcon(devices));
   }
   setTimeout(task, 1000);
 }
