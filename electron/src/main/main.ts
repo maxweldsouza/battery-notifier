@@ -135,12 +135,17 @@ async function task() {
   if (shouldGetDevices) {
     const devices = await getAllDevices();
     mainWindow?.webContents.send('receive-devices', devices);
-    await batteryTask(devices);
   }
   setTimeout(task, 1000);
 }
 
 setTimeout(task, 0);
+
+setInterval(async () => {
+  const devices = await getAllDevices();
+  await batteryTask(devices);
+  mainWindow?.webContents.send('receive-devices', devices);
+}, 5 * 60 * 1000);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
