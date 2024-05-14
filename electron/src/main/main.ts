@@ -111,8 +111,6 @@ async function batteryTask(devices) {
   runBatteryNotification(devices, preferences);
 }
 
-const TASK_INTERVAL_MS = 1000;
-
 async function getAllDevices() {
   const devicePaths = await getDevices();
   const promises = devicePaths.map(getDeviceInfo);
@@ -122,11 +120,27 @@ async function getAllDevices() {
   return devices;
 }
 
-setInterval(async () => {
-  const devices = await getAllDevices();
-  mainWindow?.webContents.send('receive-devices', devices);
-  await batteryTask(devices);
-}, TASK_INTERVAL_MS);
+let counter = 0;
+async function task() {
+  let shouldGetDevices = false;
+  if (mainWindow?.isVisible()) {
+    shouldGetDevices = true;
+    counter = 0;
+  } else if (counter >= 60) {
+    shouldGetDevices = true;
+    counter = 0;
+  }
+  counter += 1;
+
+  if (shouldGetDevices) {
+    const devices = await getAllDevices();
+    mainWindow?.webContents.send('receive-devices', devices);
+    await batteryTask(devices);
+  }
+  setTimeout(task, 1000);
+}
+
+setTimeout(task, 0);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
