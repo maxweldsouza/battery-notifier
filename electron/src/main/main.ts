@@ -174,7 +174,7 @@ const installExtensions = async () => {
 async function showTrayIcon() {
   const devices = await getAllDevices();
   const icon = getBatteryIcon(devices);
-  tray = new Tray(icon); // Path to your tray icon
+  tray = new Tray(icon);
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -225,11 +225,7 @@ const createWindow = async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      mainWindow.show();
-    }
+    mainWindow.hide();
   });
 
   mainWindow.on('closed', () => {
@@ -248,7 +244,7 @@ const createWindow = async () => {
   mainWindow.on('close', (event) => {
     if (!app.isQuiting) {
       event.preventDefault();
-      mainWindow.minimize(); // Hide the window instead of closing it
+      mainWindow?.hide(); // Hide the window instead of closing it
     }
     return false;
   });
